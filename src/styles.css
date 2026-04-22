@@ -123,7 +123,8 @@ textarea { resize: vertical; }
 .section-header h2,
 .section-header h3,
 .auth-hero h1,
-.hero-banner h2 {
+.hero-banner h2,
+.auth-form-header h2 {
   margin: 0;
   line-height: 1.02;
 }
@@ -133,7 +134,12 @@ textarea { resize: vertical; }
 .page-description,
 .hero-banner p,
 .empty-state p,
-.quick-action-card p {
+.quick-action-card p,
+.source-card p,
+.plan-card p,
+.list-group-header p,
+.mini-feature-card p,
+.auth-hero p {
   color: var(--text-secondary);
 }
 .sidebar-copy,
@@ -148,7 +154,11 @@ textarea { resize: vertical; }
 .nav-list,
 .stack-list,
 .sidebar-actions,
-.quick-actions-list {
+.quick-actions-list,
+.plan-card-list,
+.source-card-list,
+.grouped-list,
+.auth-hero-copy {
   display: grid;
   gap: 12px;
 }
@@ -255,7 +265,10 @@ textarea { resize: vertical; }
 }
 .page-header,
 .section-header,
-.list-header {
+.list-header,
+.list-group-header,
+.source-card-top,
+.plan-card-top {
   display: flex;
   justify-content: space-between;
   align-items: end;
@@ -285,7 +298,11 @@ textarea { resize: vertical; }
 .stat-card,
 .row-card,
 .hero-banner,
-.quick-action-card {
+.quick-action-card,
+.source-card,
+.plan-card,
+.mini-feature-card,
+.installment-summary-card {
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   background: var(--bg-surface);
@@ -302,10 +319,33 @@ textarea { resize: vertical; }
   align-items: end;
   box-shadow: var(--shadow-strong);
 }
-.hero-banner-actions {
+.hero-banner-actions,
+.plan-card-meta,
+.auth-feature-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+.auth-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.auth-hero-panel {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--bg-surface) 88%, white), var(--bg-surface-strong));
+}
+.auth-form-card,
+.auth-form-header {
+  display: grid;
+  gap: 16px;
+}
+.auth-segmented-control {
+  width: 100%;
+}
+.mini-feature-card,
+.plan-card,
+.source-card,
+.installment-summary-card {
+  padding: 18px;
 }
 .stats-grid {
   display: grid;
@@ -359,6 +399,9 @@ label,
   gap: 16px;
   padding: 18px 20px;
 }
+.row-card-detail {
+  align-items: center;
+}
 .row-card p,
 .empty-state,
 .inline-alert,
@@ -369,7 +412,10 @@ label,
   justify-items: end;
   gap: 10px;
 }
-.transaction-row strong { display: block; margin-top: 8px; }
+.transaction-row strong,
+.source-card strong,
+.plan-card strong,
+.mini-feature-card strong { display: block; margin-top: 8px; }
 .transaction-type-pill {
   padding: 8px 12px;
   margin-bottom: 10px;
@@ -392,19 +438,56 @@ label,
   border: 1px solid var(--border-subtle);
   background: color-mix(in srgb, var(--bg-elevated) 82%, transparent);
 }
+.compact-empty-state {
+  padding: 14px 16px;
+}
 .inline-alert { color: var(--danger); }
 .quick-action-card {
   display: grid;
   gap: 8px;
   padding: 18px;
 }
-.quick-action-card:hover {
+.quick-action-card:hover,
+.source-card:hover,
+.plan-card:hover,
+.mini-feature-card:hover {
   transform: translateY(-2px);
   border-color: var(--border-strong);
 }
 .sticky-panel {
   position: sticky;
   top: 92px;
+}
+.source-card,
+.plan-card,
+.list-group {
+  display: grid;
+  gap: 12px;
+}
+.list-group {
+  gap: 14px;
+}
+.installment-grid,
+.installment-grid-enhanced {
+  display: grid;
+  gap: 12px;
+}
+.installment-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 1fr;
+  gap: 10px;
+}
+.installment-row-card {
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-elevated) 84%, transparent);
+}
+.installment-summary-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 16px;
 }
 .shell-backdrop,
 .mobile-bottom-nav { display: none; }
@@ -488,7 +571,8 @@ label,
     padding-right: 20px;
   }
 
-  .stats-grid {
+  .stats-grid,
+  .auth-feature-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -511,8 +595,13 @@ label,
   .page-header,
   .section-header,
   .list-header,
+  .list-group-header,
   .hero-banner,
-  .row-card {
+  .row-card,
+  .installment-row,
+  .installment-summary-card,
+  .source-card-top,
+  .plan-card-top {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
@@ -525,7 +614,8 @@ label,
   .filter-bar,
   .page-header-actions,
   .hero-banner-actions,
-  .topbar-actions {
+  .topbar-actions,
+  .plan-card-meta {
     width: 100%;
   }
 
