@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue"
 
+import EmptyState from "@/components/EmptyState.vue"
+import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
+import PaginationNav from "@/components/PaginationNav.vue"
 import { api } from "@/services/api"
-import type { Category, PaymentSource, Transaction, TransactionStatus, TransactionType } from "@/types/api"
+import { useUiStore } from "@/stores/ui"
+import type { Category, PaymentSource, PaginationMeta, Transaction, TransactionStatus, TransactionType } from "@/types/api"
 import { formatMoneyFromCents } from "@/utils/money"
 
+const ui = useUiStore()
 const loading = ref(false)
 const saving = ref(false)
 const errorMessage = ref("")
 const transactions = ref<Transaction[]>([])
 const categories = ref<Category[]>([])
 const paymentSources = ref<PaymentSource[]>([])
+const pagination = ref<PaginationMeta | undefined>(undefined)
+const currentPage = ref(1)
 const editingTransactionId = ref<number | null>(null)
 const filters = reactive({
   type: "all",
@@ -37,6 +44,7 @@ const hasActiveFilters = computed(() => Object.values(filters).some((value) => v
 
 function buildTransactionParams() {
   return {
+    page: currentPage.value,
     "filter[type]": filters.type !== "all" ? filters.type : undefined,
     "filter[status]": filters.status !== "all" ? filters.status : undefined,
     "filter[description]": filters.description || undefined,
@@ -58,6 +66,7 @@ async function loadPage() {
     ])
 
     transactions.value = transactionsResponse.data
+    pagination.value = transactionsResponse.meta
     categories.value = categoriesResponse
     paymentSources.value = paymentSourcesResponse
   } catch (error) {
@@ -92,11 +101,22 @@ function startEditing(transaction: Transaction) {
 }
 
 function clearFilters() {
+  currentPage.value = 1
   filters.type = "all"
   filters.status = "all"
   filters.description = ""
   filters.from = ""
   filters.to = ""
+  void loadPage()
+}
+
+function applyFilters() {
+  currentPage.value = 1
+  void loadPage()
+}
+
+function changePage(page: number) {
+  currentPage.value = page
   void loadPage()
 }
 
@@ -118,8 +138,10 @@ async function submitForm() {
   try {
     if (editingTransactionId.value) {
       await api.updateTransaction(editingTransactionId.value, payload)
+      ui.pushToast("Lançamento atualizado.", "success")
     } else {
       await api.createTransaction(payload)
+      ui.pushToast("Lançamento criado.", "success")
     }
 
     resetForm()
@@ -138,6 +160,7 @@ async function cancelTransaction(id: number) {
     resetForm()
   }
 
+  ui.pushToast("Lançamento cancelado.", "info")
   await loadPage()
 }
 
@@ -261,37 +284,44 @@ onMounted(() => {
           <div class="filter-bar">
             <input v-model="filters.from" type="date" />
             <input v-model="filters.to" type="date" />
-            <button class="primary-button" type="button" @click="loadPage">Aplicar filtros</button>
+            <button class="primary-button" type="button" @click="applyFilters">Aplicar filtros</button>
             <button v-if="hasActiveFilters" class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
         </div>
 
-        <p v-if="loading" class="muted-text">Carregando lançamentos...</p>
+        <LoadingState v-if="loading" message="Carregando lançamentos..." />
 
-        <div v-else-if="!transactions.length" class="empty-state">
-          <strong>Nenhum lançamento encontrado.</strong>
-          <p>Cadastre um item novo ou ajuste os filtros para ampliar a busca.</p>
-        </div>
+        <template v-else>
+          <EmptyState
+            v-if="!transactions.length"
+            title="Nenhum lançamento encontrado."
+            description="Cadastre um item novo ou ajuste os filtros para ampliar a busca."
+          />
 
-        <ul v-else class="stack-list">
-          <li v-for="transaction in transactions" :key="transaction.id" class="row-card row-card-actions transaction-row">
-            <div>
-              <span class="transaction-type-pill" :class="`is-${transaction.type}`">
-                {{ transaction.type === "expense" ? "Despesa" : "Receita" }}
-              </span>
-              <strong>{{ transaction.description }}</strong>
-              <p>{{ transaction.transaction_date }} · {{ transaction.status }}</p>
-            </div>
+          <template v-else>
+            <ul class="stack-list">
+              <li v-for="transaction in transactions" :key="transaction.id" class="row-card row-card-actions transaction-row">
+                <div>
+                  <span class="transaction-type-pill" :class="`is-${transaction.type}`">
+                    {{ transaction.type === "expense" ? "Despesa" : "Receita" }}
+                  </span>
+                  <strong>{{ transaction.description }}</strong>
+                  <p>{{ transaction.transaction_date }} · {{ transaction.status }}</p>
+                </div>
 
-            <div class="row-actions action-stack">
-              <strong>{{ formatMoneyFromCents(transaction.amount_cents, transaction.currency_code) }}</strong>
-              <div class="row-button-group">
-                <button class="ghost-button" type="button" @click="startEditing(transaction)">Editar</button>
-                <button class="ghost-button" type="button" @click="cancelTransaction(transaction.id)">Cancelar</button>
-              </div>
-            </div>
-          </li>
-        </ul>
+                <div class="row-actions action-stack">
+                  <strong>{{ formatMoneyFromCents(transaction.amount_cents, transaction.currency_code) }}</strong>
+                  <div class="row-button-group">
+                    <button class="ghost-button" type="button" @click="startEditing(transaction)">Editar</button>
+                    <button class="ghost-button" type="button" @click="cancelTransaction(transaction.id)">Cancelar</button>
+                  </div>
+                </div>
+              </li>
+            </ul>
+
+            <PaginationNav :meta="pagination" @change="changePage" />
+          </template>
+        </template>
       </div>
     </section>
   </section>

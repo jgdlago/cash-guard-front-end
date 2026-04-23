@@ -87,6 +87,49 @@ input, select, textarea {
 textarea { resize: vertical; }
 
 .app-root { min-height: 100vh; }
+
+.toast-stack {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 80;
+  display: grid;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+}
+.toast-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: color-mix(in srgb, var(--bg-surface-strong) 96%, transparent);
+  box-shadow: var(--shadow-soft);
+}
+.toast-item.is-success { border-color: color-mix(in srgb, var(--success) 40%, var(--border-subtle)); }
+.toast-item.is-error { border-color: color-mix(in srgb, var(--danger) 40%, var(--border-subtle)); }
+.toast-item.is-info { border-color: color-mix(in srgb, var(--accent-primary) 35%, var(--border-subtle)); }
+.toast-close {
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+}
+.loading-state {
+  padding: 12px 0;
+}
+.pagination-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+}
+.pagination-status {
+  color: var(--text-secondary);
+  text-align: center;
+}
 .auth-screen-shell {
   min-height: 100vh;
   padding: 24px;

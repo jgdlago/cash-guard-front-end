@@ -1,16 +1,23 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue"
 
+import EmptyState from "@/components/EmptyState.vue"
+import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
+import PaginationNav from "@/components/PaginationNav.vue"
 import { api } from "@/services/api"
-import type { Category, InstallmentPlan, PaymentSource } from "@/types/api"
+import { useUiStore } from "@/stores/ui"
+import type { Category, InstallmentPlan, PaginationMeta, PaymentSource } from "@/types/api"
 
+const ui = useUiStore()
 const plans = ref<InstallmentPlan[]>([])
 const categories = ref<Category[]>([])
 const paymentSources = ref<PaymentSource[]>([])
+const pagination = ref<PaginationMeta | undefined>(undefined)
 const errorMessage = ref("")
 const loading = ref(false)
 const saving = ref(false)
+const currentPage = ref(1)
 const mode = ref<"manual" | "equal">("manual")
 const equalInstallmentsCount = ref("2")
 const equalInstallmentAmount = ref("")
@@ -62,6 +69,7 @@ function applyEqualInstallments() {
 
 function buildInstallmentParams() {
   return {
+    page: currentPage.value,
     "filter[description]": filters.description || undefined,
     "filter[from_due_date]": filters.from_due_date || undefined,
     "filter[to_due_date]": filters.to_due_date || undefined,
@@ -80,6 +88,7 @@ async function loadPage() {
     ])
 
     plans.value = plansResponse.data
+    pagination.value = plansResponse.meta
     categories.value = categoriesResponse
     paymentSources.value = paymentSourcesResponse
   } catch (error) {
@@ -90,9 +99,20 @@ async function loadPage() {
 }
 
 function clearFilters() {
+  currentPage.value = 1
   filters.description = ""
   filters.from_due_date = ""
   filters.to_due_date = ""
+  void loadPage()
+}
+
+function applyFilters() {
+  currentPage.value = 1
+  void loadPage()
+}
+
+function changePage(page: number) {
+  currentPage.value = page
   void loadPage()
 }
 
@@ -116,6 +136,7 @@ async function submitForm() {
     createInstallments(2)
     equalInstallmentsCount.value = "2"
     equalInstallmentAmount.value = ""
+    ui.pushToast("Parcelamento criado.", "success")
     await loadPage()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Falha ao criar parcelamento."
@@ -126,6 +147,7 @@ async function submitForm() {
 
 async function cancelPlan(id: number) {
   await api.cancelInstallmentPlan(id)
+  ui.pushToast("Parcelamento cancelado.", "info")
   await loadPage()
 }
 
@@ -244,38 +266,45 @@ onMounted(() => {
           </div>
 
           <div class="filter-bar">
-            <button class="primary-button" type="button" @click="loadPage">Aplicar filtros</button>
+            <button class="primary-button" type="button" @click="applyFilters">Aplicar filtros</button>
             <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
         </div>
 
-        <p v-if="loading" class="muted-text">Carregando parcelamentos...</p>
+        <LoadingState v-if="loading" message="Carregando parcelamentos..." />
 
-        <div v-else-if="!plans.length" class="empty-state">
-          <strong>Nenhum parcelamento cadastrado.</strong>
-          <p>Ao criar um plano, as parcelas ficam disponíveis para acompanhamento no backend e no extrato.</p>
-        </div>
+        <template v-else>
+          <EmptyState
+            v-if="!plans.length"
+            title="Nenhum parcelamento cadastrado."
+            description="Ao criar um plano, as parcelas ficam disponíveis para acompanhamento no backend e no extrato."
+          />
 
-        <div v-else class="stack-list plan-card-list">
-          <article v-for="plan in plans" :key="plan.id" class="plan-card">
-            <div class="plan-card-top">
-              <div>
-                <strong>{{ plan.description }}</strong>
-                <p>{{ plan.total_installments }} parcelas</p>
-              </div>
-              <strong>{{ plan.total_amount }}</strong>
+          <template v-else>
+            <div class="stack-list plan-card-list">
+              <article v-for="plan in plans" :key="plan.id" class="plan-card">
+                <div class="plan-card-top">
+                  <div>
+                    <strong>{{ plan.description }}</strong>
+                    <p>{{ plan.total_installments }} parcelas</p>
+                  </div>
+                  <strong>{{ plan.total_amount }}</strong>
+                </div>
+
+                <div class="plan-card-meta">
+                  <span class="badge">Primeiro vencimento: {{ plan.first_due_date }}</span>
+                  <span class="badge">{{ plan.transactions.length }} lançamentos vinculados</span>
+                </div>
+
+                <div class="row-button-group">
+                  <button class="ghost-button" type="button" @click="cancelPlan(plan.id)">Cancelar plano</button>
+                </div>
+              </article>
             </div>
 
-            <div class="plan-card-meta">
-              <span class="badge">Primeiro vencimento: {{ plan.first_due_date }}</span>
-              <span class="badge">{{ plan.transactions.length }} lançamentos vinculados</span>
-            </div>
-
-            <div class="row-button-group">
-              <button class="ghost-button" type="button" @click="cancelPlan(plan.id)">Cancelar plano</button>
-            </div>
-          </article>
-        </div>
+            <PaginationNav :meta="pagination" @change="changePage" />
+          </template>
+        </template>
       </div>
     </section>
   </section>

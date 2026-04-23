@@ -3,6 +3,13 @@ import { defineStore } from "pinia"
 
 type ThemeMode = "light" | "dark" | "system"
 type ResolvedTheme = "light" | "dark"
+type ToastTone = "success" | "error" | "info"
+
+interface ToastItem {
+  id: number
+  message: string
+  tone: ToastTone
+}
 
 const STORAGE_KEY = "cash-guard-theme"
 
@@ -17,6 +24,7 @@ function getSystemTheme(): ResolvedTheme {
 export const useUiStore = defineStore("ui", () => {
   const themeMode = ref<ThemeMode>((localStorage.getItem(STORAGE_KEY) as ThemeMode | null) ?? "system")
   const mobileNavOpen = ref(false)
+  const toasts = ref<ToastItem[]>([])
 
   const resolvedTheme = computed<ResolvedTheme>(() => {
     return themeMode.value === "system" ? getSystemTheme() : themeMode.value
@@ -55,6 +63,19 @@ export const useUiStore = defineStore("ui", () => {
     mobileNavOpen.value = false
   }
 
+  function pushToast(message: string, tone: ToastTone = "info") {
+    const id = Date.now() + Math.floor(Math.random() * 1000)
+    toasts.value.push({ id, message, tone })
+
+    window.setTimeout(() => {
+      removeToast(id)
+    }, 3200)
+  }
+
+  function removeToast(id: number) {
+    toasts.value = toasts.value.filter((toast) => toast.id !== id)
+  }
+
   function hydrateTheme() {
     applyTheme()
 
@@ -80,10 +101,13 @@ export const useUiStore = defineStore("ui", () => {
     themeMode,
     resolvedTheme,
     mobileNavOpen,
+    toasts,
     setTheme,
     cycleTheme,
     openMobileNav,
     closeMobileNav,
+    pushToast,
+    removeToast,
     hydrateTheme,
   }
 })

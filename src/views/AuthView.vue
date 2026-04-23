@@ -3,8 +3,10 @@ import { computed, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 
 import { useAuthStore } from "@/stores/auth"
+import { useUiStore } from "@/stores/ui"
 
 const auth = useAuthStore()
+const ui = useUiStore()
 const router = useRouter()
 const mode = ref<"login" | "register">("login")
 const errorMessage = ref("")
@@ -36,8 +38,10 @@ async function handleSubmit() {
   try {
     if (mode.value === "login") {
       await auth.login(loginForm)
+      ui.pushToast("Login realizado com sucesso.", "success")
     } else {
       await auth.register(registerForm)
+      ui.pushToast("Conta criada com sucesso.", "success")
     }
 
     await router.push({ name: "dashboard" })

@@ -3,6 +3,7 @@ import { computed, onMounted, watch } from "vue"
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router"
 
 import ThemeToggle from "@/components/ThemeToggle.vue"
+import ToastStack from "@/components/ToastStack.vue"
 import { useAuthStore } from "@/stores/auth"
 import { useUiStore } from "@/stores/ui"
 
@@ -43,6 +44,7 @@ watch(
 
 async function handleLogout() {
   await auth.logout()
+  ui.pushToast("Sessão encerrada.", "info")
   await router.push({ name: "auth" })
 }
 
@@ -57,6 +59,8 @@ const navigation = [
 
 <template>
   <div class="app-root">
+    <ToastStack />
+
     <template v-if="isAuthScreen">
       <div class="auth-screen-shell">
         <div class="auth-screen-toolbar">
