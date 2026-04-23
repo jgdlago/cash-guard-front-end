@@ -5,6 +5,8 @@ import { RouterLink, RouterView, useRoute, useRouter } from "vue-router"
 import AppIcon from "@/components/AppIcon.vue"
 import ThemeToggle from "@/components/ThemeToggle.vue"
 import ToastStack from "@/components/ToastStack.vue"
+import BaseButton from "@/components/base/BaseButton.vue"
+import BaseCard from "@/components/base/BaseCard.vue"
 import { useAuthStore } from "@/stores/auth"
 import { useUiStore } from "@/stores/ui"
 
@@ -84,23 +86,23 @@ const navigation = [
       <div class="app-shell" :class="{ 'sidebar-collapsed': ui.sidebarCollapsed }">
         <aside class="sidebar" :class="{ 'is-open': ui.mobileNavOpen }">
           <div class="sidebar-scroll">
-            <div class="sidebar-top">
-              <div class="sidebar-brand-row">
+            <div class="sidebar-top sidebar-top-refined">
+              <RouterLink to="/dashboard" class="sidebar-brand-row sidebar-brand-link">
                 <div class="brand-mark">C</div>
                 <div v-if="!ui.sidebarCollapsed" class="brand-copy">
                   <strong>Cash Guard</strong>
                   <span>Controle pessoal</span>
                 </div>
-              </div>
+              </RouterLink>
 
-              <button
-                class="icon-button collapse-toggle desktop-only"
-                type="button"
+              <BaseButton
+                class="desktop-only app-icon-control collapse-toggle"
+                variant="ghost"
                 :title="ui.sidebarCollapsed ? 'Expandir menu' : 'Colapsar menu'"
                 @click="ui.toggleSidebarCollapsed()"
               >
                 <AppIcon :name="ui.sidebarCollapsed ? 'expand' : 'collapse'" />
-              </button>
+              </BaseButton>
             </div>
 
             <nav class="nav-list nav-list-primary">
@@ -118,15 +120,15 @@ const navigation = [
           </div>
 
           <div class="sidebar-footer">
-            <div v-if="auth.user && !ui.sidebarCollapsed" class="user-card user-card-compact">
+            <BaseCard v-if="auth.user && !ui.sidebarCollapsed" variant="muted" class="user-card user-card-compact" :padded="false">
               <strong>{{ auth.user.name }}</strong>
               <p>{{ auth.user.email }}</p>
-            </div>
+            </BaseCard>
 
-            <button class="ghost-button logout-button" :title="ui.sidebarCollapsed ? 'Sair' : undefined" @click="handleLogout">
-              <span class="nav-icon"><AppIcon name="audit" /></span>
+            <BaseButton class="logout-button" variant="ghost" :title="ui.sidebarCollapsed ? 'Sair' : undefined" @click="handleLogout">
+              <span class="nav-icon"><AppIcon name="logout" /></span>
               <span v-if="!ui.sidebarCollapsed">Sair</span>
-            </button>
+            </BaseButton>
           </div>
         </aside>
 
@@ -136,9 +138,9 @@ const navigation = [
           <header class="topbar">
             <div class="topbar-inner content-frame">
               <div class="topbar-heading">
-                <button class="icon-button mobile-nav-trigger" type="button" @click="ui.openMobileNav()">
+                <BaseButton class="mobile-nav-trigger" variant="ghost" @click="ui.openMobileNav()">
                   <AppIcon name="menu" />
-                </button>
+                </BaseButton>
                 <div>
                   <p class="eyebrow">Aplicação</p>
                   <strong class="topbar-title">{{ pageTitle }}</strong>

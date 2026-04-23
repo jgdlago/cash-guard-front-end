@@ -12,6 +12,7 @@ type IconName =
   | "menu"
   | "collapse"
   | "expand"
+  | "logout"
 
 const props = defineProps<{
   name: IconName
@@ -39,6 +40,8 @@ const paths = computed(() => {
       return ["M15 6l-6 6 6 6", "M5 5v14"]
     case "expand":
       return ["M9 6l6 6-6 6", "M19 5v14"]
+    case "logout":
+      return ["M9 6H5v12h4", "M13 8l4 4-4 4", "M17 12H9"]
     default:
       return []
   }

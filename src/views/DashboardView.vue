@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
 
+import BaseCard from "@/components/base/BaseCard.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
@@ -47,7 +48,7 @@ onMounted(() => {
     <LoadingState v-if="loading" message="Carregando resumo..." />
 
     <template v-else-if="dashboard">
-      <section class="hero-banner hero-banner-compact dashboard-hero dashboard-hero-refined">
+      <BaseCard class="hero-banner hero-banner-compact dashboard-hero dashboard-hero-refined dashboard-hero-system">
         <div class="hero-banner-main">
           <p class="eyebrow">Saldo do período</p>
           <h2>{{ dashboard.summary.balance }}</h2>
@@ -58,30 +59,30 @@ onMounted(() => {
           <RouterLink to="/transactions" class="primary-button">Novo lançamento</RouterLink>
           <RouterLink to="/recurring-rules" class="ghost-button">Recorrências</RouterLink>
         </div>
-      </section>
+      </BaseCard>
 
       <div class="stats-grid stats-grid-tight stats-grid-refined">
-        <article class="stat-card stat-positive stat-card-compact stat-card-refined">
+        <BaseCard class="stat-card stat-positive stat-card-compact stat-card-refined stat-card-system">
           <span>Receitas</span>
           <strong>{{ dashboard.summary.income }}</strong>
           <p class="muted-text">Entradas no período.</p>
-        </article>
+        </BaseCard>
 
-        <article class="stat-card stat-negative stat-card-compact stat-card-refined">
+        <BaseCard class="stat-card stat-negative stat-card-compact stat-card-refined stat-card-system">
           <span>Despesas</span>
           <strong>{{ dashboard.summary.expense }}</strong>
           <p class="muted-text">Saídas no período.</p>
-        </article>
+        </BaseCard>
 
-        <article class="stat-card stat-card-compact stat-card-refined">
+        <BaseCard class="stat-card stat-card-compact stat-card-refined stat-card-system">
           <span>Saldo</span>
           <strong>{{ dashboard.summary.balance }}</strong>
           <p class="muted-text">Resultado líquido.</p>
-        </article>
+        </BaseCard>
       </div>
 
       <section class="dashboard-grid dashboard-grid-refined">
-        <section class="section-card section-card-tight surface-panel">
+        <BaseCard class="section-card section-card-tight surface-panel surface-panel-system">
           <div class="section-header compact">
             <div>
               <p class="eyebrow">Categorias</p>
@@ -106,11 +107,11 @@ onMounted(() => {
           <EmptyState
             v-else
             title="Nenhuma despesa categorizada ainda."
-            description="As saídas do período aparecerão aqui quando existirem lançamentos." 
+            description="As saídas do período aparecerão aqui quando existirem lançamentos."
           />
-        </section>
+        </BaseCard>
 
-        <section class="section-card section-card-tight surface-panel">
+        <BaseCard class="section-card section-card-tight surface-panel surface-panel-system">
           <div class="section-header compact">
             <div>
               <p class="eyebrow">Atalhos</p>
@@ -119,22 +120,22 @@ onMounted(() => {
           </div>
 
           <div class="stack-list stack-list-tight">
-            <RouterLink to="/transactions" class="quick-action-card quick-action-card-compact quick-action-card-refined">
+            <RouterLink to="/transactions" class="quick-action-card quick-action-card-compact quick-action-card-refined quick-action-card-system">
               <strong>Registrar lançamento</strong>
               <p>Adicionar entrada ou saída.</p>
             </RouterLink>
 
-            <RouterLink to="/installments" class="quick-action-card quick-action-card-compact quick-action-card-refined">
+            <RouterLink to="/installments" class="quick-action-card quick-action-card-compact quick-action-card-refined quick-action-card-system">
               <strong>Criar parcelamento</strong>
               <p>Montar um plano com vencimentos.</p>
             </RouterLink>
 
-            <RouterLink to="/categories" class="quick-action-card quick-action-card-compact quick-action-card-refined">
+            <RouterLink to="/categories" class="quick-action-card quick-action-card-compact quick-action-card-refined quick-action-card-system">
               <strong>Revisar categorias</strong>
               <p>Organizar catálogo e preferências.</p>
             </RouterLink>
           </div>
-        </section>
+        </BaseCard>
       </section>
     </template>
   </section>

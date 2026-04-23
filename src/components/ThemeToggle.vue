@@ -13,9 +13,9 @@ const ui = useUiStore()
     :title="ui.isDarkMode ? 'Alternar para tema claro' : 'Alternar para tema escuro'"
     @click="ui.toggleTheme()"
   >
+    <span class="sr-only">Alternar tema</span>
     <span class="theme-switch-track">
       <span class="theme-switch-thumb"></span>
     </span>
-    <span class="theme-switch-label">{{ ui.isDarkMode ? "Escuro" : "Claro" }}</span>
   </button>
 </template>
