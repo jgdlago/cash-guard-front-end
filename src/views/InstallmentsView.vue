@@ -157,17 +157,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="page-section installments-page">
+  <section class="page-section installments-page refined-page">
     <PageHeader
       eyebrow="Parcelamentos"
       title="Parcelas flexíveis"
-      description="Crie planos, filtre pelo vencimento e cancele parcelamentos usando a API já disponível."
+      description="Monte planos com leitura mais clara entre criação, soma e histórico de parcelamentos."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="content-grid-2 split-workspace">
-      <div class="section-card sticky-panel">
+    <section class="workspace-grid">
+      <div class="section-card section-card-tight form-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">Novo plano</p>
@@ -175,12 +175,12 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="segmented-control">
+        <div class="segmented-control segmented-control-tight">
           <button type="button" :class="{ active: mode === 'manual' }" @click="mode = 'manual'">Valores manuais</button>
           <button type="button" :class="{ active: mode === 'equal' }" @click="mode = 'equal'">Dividir igualmente</button>
         </div>
 
-        <form class="form-grid" @submit.prevent="submitForm">
+        <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
           <label class="field-span-2">
             Descrição
             <input v-model="form.description" type="text" placeholder="Ex: notebook" required />
@@ -227,17 +227,17 @@ onMounted(() => {
             </button>
           </template>
 
-          <div class="field-span-2 installment-summary-card">
+          <div class="field-span-2 installment-summary-card installment-summary-card-compact">
             <div>
               <strong>{{ form.installments.length }} parcelas</strong>
-              <p class="muted-text">Conferência rápida da soma antes do envio para a API.</p>
+              <p class="muted-text">Soma informada para conferência rápida.</p>
             </div>
             <strong>{{ installmentsTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong>
           </div>
 
           <div class="field-span-2 installment-grid installment-grid-enhanced">
-            <div v-for="installment in form.installments" :key="installment.number" class="installment-row installment-row-card">
-              <strong>{{ installment.number }}ª parcela</strong>
+            <div v-for="installment in form.installments" :key="installment.number" class="installment-row installment-row-card installment-row-card-compact">
+              <strong>{{ installment.number }}ª</strong>
               <input v-model="installment.amount" type="text" inputmode="decimal" placeholder="Valor" required />
               <input v-model="installment.due_date" type="date" required />
             </div>
@@ -250,7 +250,7 @@ onMounted(() => {
         </form>
       </div>
 
-      <div class="section-card">
+      <div class="section-card section-card-tight list-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">Planos</p>
@@ -258,14 +258,14 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="filter-panel">
+        <div class="filter-panel filter-panel-inline">
           <div class="filter-bar">
             <input v-model="filters.description" type="search" placeholder="Buscar descrição" />
             <input v-model="filters.from_due_date" type="date" />
             <input v-model="filters.to_due_date" type="date" />
           </div>
 
-          <div class="filter-bar">
+          <div class="filter-bar filter-bar-actions">
             <button class="primary-button" type="button" @click="applyFilters">Aplicar filtros</button>
             <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
@@ -281,8 +281,8 @@ onMounted(() => {
           />
 
           <template v-else>
-            <div class="stack-list plan-card-list">
-              <article v-for="plan in plans" :key="plan.id" class="plan-card">
+            <div class="stack-list stack-list-tight plan-card-list">
+              <article v-for="plan in plans" :key="plan.id" class="plan-card plan-card-compact">
                 <div class="plan-card-top">
                   <div>
                     <strong>{{ plan.description }}</strong>
@@ -293,7 +293,7 @@ onMounted(() => {
 
                 <div class="plan-card-meta">
                   <span class="badge">Primeiro vencimento: {{ plan.first_due_date }}</span>
-                  <span class="badge">{{ plan.transactions.length }} lançamentos vinculados</span>
+                  <span class="badge">{{ plan.transactions.length }} lançamentos</span>
                 </div>
 
                 <div class="row-button-group">

@@ -125,17 +125,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="page-section categories-page">
+  <section class="page-section categories-page refined-page">
     <PageHeader
       eyebrow="Categorias"
       title="Catálogo de classificação"
-      description="Gerencie o catálogo e ajuste preferências visuais por usuário sem alterar as categorias padrão do sistema."
+      description="Gerencie o catálogo com mais clareza entre cadastro, filtros e preferências visuais por usuário."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="content-grid-2 split-workspace">
-      <div class="section-card sticky-panel">
+    <section class="workspace-grid">
+      <div class="section-card section-card-tight form-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">Nova categoria</p>
@@ -143,7 +143,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <form class="form-grid" @submit.prevent="submitForm">
+        <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
           <label class="field-span-2">
             Nome
             <input v-model="form.name" type="text" placeholder="Ex: Pets" required />
@@ -164,7 +164,7 @@ onMounted(() => {
         </form>
       </div>
 
-      <div class="section-card">
+      <div class="section-card section-card-tight list-panel">
         <div class="section-header compact list-header">
           <div>
             <p class="eyebrow">Lista</p>
@@ -172,7 +172,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="filter-panel">
+        <div class="filter-panel filter-panel-inline">
           <div class="filter-bar">
             <select v-model="filters.scope">
               <option value="all">Todas</option>
@@ -190,7 +190,7 @@ onMounted(() => {
             <input v-model="filters.query" type="search" placeholder="Buscar categoria" />
           </div>
 
-          <div class="filter-bar">
+          <div class="filter-bar filter-bar-actions">
             <button class="primary-button" type="button" @click="loadCategories">Aplicar filtros</button>
             <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
@@ -205,21 +205,21 @@ onMounted(() => {
             description="Ajuste os filtros ou crie uma categoria personalizada."
           />
 
-          <div v-else class="stack-list">
-            <article v-for="category in categories" :key="category.id" class="row-card row-card-detail category-row-card">
+          <div v-else class="stack-list stack-list-tight">
+            <article v-for="category in categories" :key="category.id" class="row-card row-card-compact row-card-detail category-row-card">
               <div>
-                <strong>{{ category.name }}</strong>
+                <div class="inline-meta-row inline-meta-row-wrap">
+                  <strong>{{ category.name }}</strong>
+                  <span class="badge">{{ category.kind }}</span>
+                  <span class="badge">{{ category.direction }}</span>
+                </div>
                 <p>
                   {{ category.kind === "system" ? "Padrão do sistema" : "Categoria personalizada" }}
                   <span v-if="category.is_hidden"> · Oculta</span>
                   <span v-if="category.display_order_override !== null"> · Ordem personalizada</span>
                 </p>
               </div>
-              <div class="row-actions action-stack category-actions">
-                <div class="row-button-group row-button-group-inline">
-                  <span class="badge">{{ category.kind }}</span>
-                  <span class="badge">{{ category.direction }}</span>
-                </div>
+              <div class="row-actions action-stack compact-actions">
                 <div class="row-button-group">
                   <button class="ghost-button" type="button" :disabled="preferenceSavingId === category.id" @click="toggleHidden(category)">
                     {{ category.is_hidden ? "Exibir" : "Ocultar" }}

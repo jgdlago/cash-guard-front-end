@@ -170,27 +170,26 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="page-section transactions-page">
+  <section class="page-section transactions-page refined-page">
     <PageHeader
       eyebrow="Lançamentos"
       title="Entradas e saídas"
-      description="Cadastre, edite e filtre o extrato usando o contrato real de busca do backend."
+      description="Cadastro rápido e leitura operacional do extrato, com menos ruído visual entre formulário e lista."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="content-grid-2 split-workspace">
-      <div class="section-card sticky-panel">
+    <section class="workspace-grid">
+      <div class="section-card section-card-tight form-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">{{ isEditing ? "Edição" : "Novo lançamento" }}</p>
-            <h2>{{ isEditing ? "Atualizar lançamento" : "Registrar entrada ou saída" }}</h2>
+            <h2>{{ isEditing ? "Atualizar lançamento" : "Registrar lançamento" }}</h2>
           </div>
-
           <button v-if="isEditing" class="ghost-button" type="button" @click="resetForm">Novo</button>
         </div>
 
-        <form class="form-grid" @submit.prevent="submitForm">
+        <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
           <label>
             Tipo
             <select v-model="form.type">
@@ -254,7 +253,7 @@ onMounted(() => {
         </form>
       </div>
 
-      <div class="section-card">
+      <div class="section-card section-card-tight list-panel">
         <div class="section-header compact list-header">
           <div>
             <p class="eyebrow">Extrato</p>
@@ -262,7 +261,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="filter-panel">
+        <div class="filter-panel filter-panel-inline">
           <div class="filter-bar">
             <select v-model="filters.type">
               <option value="all">Todos os tipos</option>
@@ -279,11 +278,11 @@ onMounted(() => {
             </select>
 
             <input v-model="filters.description" type="search" placeholder="Buscar descrição" />
-          </div>
-
-          <div class="filter-bar">
             <input v-model="filters.from" type="date" />
             <input v-model="filters.to" type="date" />
+          </div>
+
+          <div class="filter-bar filter-bar-actions">
             <button class="primary-button" type="button" @click="applyFilters">Aplicar filtros</button>
             <button v-if="hasActiveFilters" class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
@@ -299,17 +298,20 @@ onMounted(() => {
           />
 
           <template v-else>
-            <ul class="stack-list">
-              <li v-for="transaction in transactions" :key="transaction.id" class="row-card row-card-actions transaction-row">
-                <div>
-                  <span class="transaction-type-pill" :class="`is-${transaction.type}`">
-                    {{ transaction.type === "expense" ? "Despesa" : "Receita" }}
-                  </span>
+            <ul class="stack-list stack-list-tight">
+              <li v-for="transaction in transactions" :key="transaction.id" class="row-card row-card-compact row-card-actions transaction-row">
+                <div class="transaction-main">
+                  <div class="inline-meta-row">
+                    <span class="transaction-type-pill" :class="`is-${transaction.type}`">
+                      {{ transaction.type === "expense" ? "Despesa" : "Receita" }}
+                    </span>
+                    <span class="badge">{{ transaction.status }}</span>
+                  </div>
                   <strong>{{ transaction.description }}</strong>
-                  <p>{{ transaction.transaction_date }} · {{ transaction.status }}</p>
+                  <p>{{ transaction.transaction_date }}</p>
                 </div>
 
-                <div class="row-actions action-stack">
+                <div class="row-actions action-stack compact-actions">
                   <strong>{{ formatMoneyFromCents(transaction.amount_cents, transaction.currency_code) }}</strong>
                   <div class="row-button-group">
                     <button class="ghost-button" type="button" @click="startEditing(transaction)">Editar</button>

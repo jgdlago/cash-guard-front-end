@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue"
 
+import EmptyState from "@/components/EmptyState.vue"
+import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
 import { api } from "@/services/api"
 import type { DashboardResponse } from "@/types/api"
@@ -33,53 +35,53 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="page-section dashboard-page">
-    <PageHeader eyebrow="Dashboard" title="Resumo mensal" :description="`Leitura rápida do período de ${currentMonthLabel}.`">
-      <label class="compact-field month-field">
+  <section class="page-section dashboard-page refined-page">
+    <PageHeader eyebrow="Dashboard" title="Resumo mensal" :description="`Visão consolidada de ${currentMonthLabel}.`">
+      <label class="compact-field compact-field-inline month-field">
         <span>Mês</span>
         <input v-model="month" type="date" @change="loadDashboard" />
       </label>
     </PageHeader>
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
-    <p v-if="loading" class="muted-text">Carregando resumo...</p>
+    <LoadingState v-if="loading" message="Carregando resumo..." />
 
-    <template v-if="dashboard">
-      <section class="hero-banner">
-        <div>
+    <template v-else-if="dashboard">
+      <section class="hero-banner hero-banner-compact dashboard-hero">
+        <div class="hero-banner-main">
           <p class="eyebrow">Saldo do período</p>
           <h2>{{ dashboard.summary.balance }}</h2>
-          <p class="muted-text">O painel resume entradas, saídas e concentração das despesas do mês.</p>
+          <p class="muted-text">Resumo de entradas e saídas já consolidadas para o mês selecionado.</p>
         </div>
 
         <div class="hero-banner-actions">
           <RouterLink to="/transactions" class="primary-button">Novo lançamento</RouterLink>
-          <RouterLink to="/installments" class="ghost-button">Ver parcelas</RouterLink>
+          <RouterLink to="/recurring-rules" class="ghost-button">Ver recorrências</RouterLink>
         </div>
       </section>
 
-      <div class="stats-grid stats-grid-kpis">
-        <article class="stat-card stat-positive">
+      <div class="stats-grid stats-grid-tight">
+        <article class="stat-card stat-positive stat-card-compact">
           <span>Receitas</span>
           <strong>{{ dashboard.summary.income }}</strong>
-          <p class="muted-text">Entradas registradas no período.</p>
+          <p class="muted-text">Entradas registradas.</p>
         </article>
 
-        <article class="stat-card stat-negative">
+        <article class="stat-card stat-negative stat-card-compact">
           <span>Despesas</span>
           <strong>{{ dashboard.summary.expense }}</strong>
-          <p class="muted-text">Saídas registradas no período.</p>
+          <p class="muted-text">Saídas registradas.</p>
         </article>
 
-        <article class="stat-card">
+        <article class="stat-card stat-card-compact">
           <span>Saldo</span>
           <strong>{{ dashboard.summary.balance }}</strong>
-          <p class="muted-text">Resultado líquido do mês selecionado.</p>
+          <p class="muted-text">Resultado líquido do período.</p>
         </article>
       </div>
 
-      <section class="content-grid-2">
-        <section class="section-card">
+      <section class="dashboard-grid">
+        <section class="section-card section-card-tight">
           <div class="section-header compact">
             <div>
               <p class="eyebrow">Categorias</p>
@@ -87,8 +89,8 @@ onMounted(() => {
             </div>
           </div>
 
-          <ul v-if="dashboard.expenses_by_category.length" class="stack-list">
-            <li v-for="item in dashboard.expenses_by_category" :key="`${item.category_id}-${item.total_cents}`" class="row-card">
+          <ul v-if="dashboard.expenses_by_category.length" class="stack-list stack-list-tight">
+            <li v-for="item in dashboard.expenses_by_category" :key="`${item.category_id}-${item.total_cents}`" class="row-card row-card-compact amount-row">
               <div>
                 <strong>{{ item.category_name ?? "Sem categoria" }}</strong>
                 <p>Consolidação do mês atual</p>
@@ -97,34 +99,35 @@ onMounted(() => {
             </li>
           </ul>
 
-          <div v-else class="empty-state">
-            <strong>Nenhuma despesa categorizada ainda.</strong>
-            <p>Quando houver saídas no mês, elas aparecerão aqui para leitura rápida.</p>
-          </div>
+          <EmptyState
+            v-else
+            title="Nenhuma despesa categorizada ainda."
+            description="Quando houver saídas no mês, elas aparecerão aqui para leitura rápida."
+          />
         </section>
 
-        <section class="section-card">
+        <section class="section-card section-card-tight">
           <div class="section-header compact">
             <div>
-              <p class="eyebrow">Operação</p>
-              <h3>Próximo passo</h3>
+              <p class="eyebrow">Atalhos</p>
+              <h3>Próximas ações</h3>
             </div>
           </div>
 
-          <div class="stack-list quick-actions-list">
-            <RouterLink to="/transactions" class="quick-action-card">
+          <div class="stack-list stack-list-tight">
+            <RouterLink to="/transactions" class="quick-action-card quick-action-card-compact">
               <strong>Registrar lançamento</strong>
               <p>Entrada ou saída com categoria e origem opcional.</p>
             </RouterLink>
 
-            <RouterLink to="/categories" class="quick-action-card">
-              <strong>Organizar categorias</strong>
-              <p>Revise catálogo padrão e personalize sua classificação.</p>
+            <RouterLink to="/installments" class="quick-action-card quick-action-card-compact">
+              <strong>Criar parcelamento</strong>
+              <p>Monte um plano com valores iguais ou manuais.</p>
             </RouterLink>
 
-            <RouterLink to="/payment-sources" class="quick-action-card">
-              <strong>Ajustar origens</strong>
-              <p>Cadastre cartão ou conta pagadora apenas se fizer sentido.</p>
+            <RouterLink to="/categories" class="quick-action-card quick-action-card-compact">
+              <strong>Revisar categorias</strong>
+              <p>Organize o catálogo e as preferências visuais do usuário.</p>
             </RouterLink>
           </div>
         </section>

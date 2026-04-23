@@ -69,11 +69,13 @@ const navigation = [
 
     <template v-if="isAuthScreen">
       <div class="auth-screen-shell">
-        <div class="auth-screen-toolbar">
-          <ThemeToggle />
-        </div>
+        <div class="auth-screen-frame">
+          <div class="auth-screen-toolbar">
+            <ThemeToggle />
+          </div>
 
-        <RouterView />
+          <RouterView />
+        </div>
       </div>
     </template>
 
@@ -82,9 +84,9 @@ const navigation = [
         <aside class="sidebar" :class="{ 'is-open': ui.mobileNavOpen }">
           <div class="sidebar-brand">
             <p class="eyebrow">Cash Guard</p>
-            <h1>Finanças pessoais sem atrito.</h1>
+            <h1>Finanças pessoais diretas.</h1>
             <p class="sidebar-copy">
-              Registre entradas e saídas com clareza, use categorias e origens opcionais e acompanhe o mês sem lógica bancária pesada.
+              Entradas, saídas, categorias e recorrências com uma linguagem mais próxima de rotina do que de banco.
             </p>
           </div>
 
@@ -112,21 +114,25 @@ const navigation = [
 
         <div class="shell-main">
           <header class="topbar">
-            <div>
-              <p class="eyebrow">Aplicação</p>
-              <strong class="topbar-title">{{ pageTitle }}</strong>
-            </div>
+            <div class="topbar-inner content-frame">
+              <div>
+                <p class="eyebrow">Aplicação</p>
+                <strong class="topbar-title">{{ pageTitle }}</strong>
+              </div>
 
-            <div class="topbar-actions">
-              <button class="ghost-button mobile-nav-trigger" type="button" @click="ui.openMobileNav()">
-                Menu
-              </button>
-              <ThemeToggle class="topbar-theme" />
+              <div class="topbar-actions">
+                <button class="ghost-button mobile-nav-trigger" type="button" @click="ui.openMobileNav()">
+                  Menu
+                </button>
+                <ThemeToggle class="topbar-theme" />
+              </div>
             </div>
           </header>
 
           <main class="content-panel">
-            <RouterView />
+            <div class="content-frame">
+              <RouterView />
+            </div>
           </main>
         </div>
 
