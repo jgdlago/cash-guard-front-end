@@ -183,17 +183,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="page-section recurring-rules-page">
+  <section class="page-section recurring-rules-page refined-page">
     <PageHeader
       eyebrow="Recorrências"
       title="Regras recorrentes"
-      description="Gerencie lançamentos programados e acompanhe a próxima execução sem depender de rotinas manuais."
+      description="Controle mais claro entre cadastro da regra, leitura das próximas execuções e manutenção do histórico programado."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="content-grid-2 split-workspace">
-      <div class="section-card sticky-panel">
+    <section class="workspace-grid workspace-grid-refined">
+      <div class="section-card section-card-tight form-panel surface-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">{{ isEditing ? "Edição" : "Nova regra" }}</p>
@@ -202,7 +202,7 @@ onMounted(() => {
           <button v-if="isEditing" class="ghost-button" type="button" @click="resetForm">Nova</button>
         </div>
 
-        <form class="form-grid" @submit.prevent="submitForm">
+        <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
           <label>
             Tipo
             <select v-model="form.type">
@@ -291,7 +291,7 @@ onMounted(() => {
         </form>
       </div>
 
-      <div class="section-card">
+      <div class="section-card section-card-tight list-panel surface-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">Lista</p>
@@ -299,7 +299,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="filter-panel">
+        <div class="filter-panel filter-panel-inline filter-panel-refined">
           <div class="filter-bar">
             <select v-model="filters.type">
               <option value="all">Todos os tipos</option>
@@ -314,11 +314,11 @@ onMounted(() => {
               <option value="yearly">Anual</option>
             </select>
             <input v-model="filters.description" type="search" placeholder="Buscar descrição" />
-          </div>
-          <div class="filter-bar">
             <input v-model="filters.next_run_from" type="date" />
             <input v-model="filters.next_run_to" type="date" />
-            <button class="primary-button" type="button" @click="applyFilters">Aplicar filtros</button>
+          </div>
+          <div class="filter-bar filter-bar-actions">
+            <button class="primary-button" type="button" @click="applyFilters">Aplicar</button>
             <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
         </div>
@@ -333,17 +333,20 @@ onMounted(() => {
           />
 
           <template v-else>
-            <div class="stack-list recurring-card-list">
-              <article v-for="rule in rules" :key="rule.id" class="plan-card recurring-card">
+            <div class="stack-list stack-list-tight recurring-card-list">
+              <article v-for="rule in rules" :key="rule.id" class="plan-card recurring-card refined-plan-card">
                 <div class="plan-card-top">
                   <div>
-                    <strong>{{ rule.description }}</strong>
-                    <p>{{ rule.frequency }} · próxima execução em {{ rule.next_run_on }}</p>
+                    <div class="inline-meta-row inline-meta-row-wrap">
+                      <strong>{{ rule.description }}</strong>
+                      <span class="badge">{{ rule.type }}</span>
+                      <span class="badge">{{ rule.frequency }}</span>
+                    </div>
+                    <p>Próxima execução em {{ rule.next_run_on }}</p>
                   </div>
                   <strong>{{ rule.amount }}</strong>
                 </div>
                 <div class="plan-card-meta">
-                  <span class="badge">{{ rule.type }}</span>
                   <span class="badge">{{ rule.status_on_generate }}</span>
                   <span class="badge">{{ rule.transactions_count ?? 0 }} lançamentos</span>
                 </div>

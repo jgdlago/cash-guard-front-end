@@ -71,25 +71,25 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="page-section audit-page">
+  <section class="page-section audit-page refined-page">
     <PageHeader
       eyebrow="Auditoria"
       title="Histórico financeiro"
-      description="Consulte eventos financeiros relevantes para rastrear alterações operacionais do sistema."
+      description="Consulta técnica dos eventos financeiros mais relevantes, com foco em leitura limpa e rastreabilidade."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="section-card">
-      <div class="filter-panel">
+    <section class="section-card section-card-tight surface-panel">
+      <div class="filter-panel filter-panel-inline filter-panel-refined">
         <div class="filter-bar">
-          <input v-model="filters.event" type="search" placeholder="Evento exato" />
+          <input v-model="filters.event" type="search" placeholder="Evento" />
           <input v-model="filters.auditable_type" type="search" placeholder="Tipo auditado" />
-        </div>
-        <div class="filter-bar">
           <input v-model="filters.from" type="date" />
           <input v-model="filters.to" type="date" />
-          <button class="primary-button" type="button" @click="applyFilters">Aplicar filtros</button>
+        </div>
+        <div class="filter-bar filter-bar-actions">
+          <button class="primary-button" type="button" @click="applyFilters">Aplicar</button>
           <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
         </div>
       </div>
@@ -104,16 +104,19 @@ onMounted(() => {
         />
 
         <template v-else>
-          <div class="stack-list audit-log-list">
-            <article v-for="log in logs" :key="log.id" class="audit-log-card">
+          <div class="stack-list stack-list-tight audit-log-list">
+            <article v-for="log in logs" :key="log.id" class="audit-log-card refined-audit-card">
               <div class="plan-card-top">
                 <div>
-                  <strong>{{ log.event }}</strong>
+                  <div class="inline-meta-row inline-meta-row-wrap">
+                    <strong>{{ log.event }}</strong>
+                    <span class="badge">{{ log.auditable_type ?? 'n/a' }}</span>
+                  </div>
                   <p>{{ log.created_at }}</p>
                 </div>
-                <span class="badge">{{ log.auditable_type ?? 'n/a' }}</span>
+                <span class="badge">#{{ log.id }}</span>
               </div>
-              <p class="muted-text">Registro #{{ log.id }} · auditável {{ log.auditable_id ?? 'n/a' }}</p>
+              <p class="muted-text">Auditável {{ log.auditable_id ?? 'n/a' }}</p>
               <details class="audit-details">
                 <summary>Ver payload</summary>
                 <pre>{{ JSON.stringify({ before: log.before, after: log.after, context: log.context }, null, 2) }}</pre>

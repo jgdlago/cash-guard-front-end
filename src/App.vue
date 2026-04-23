@@ -83,43 +83,47 @@ const navigation = [
     <template v-else>
       <div class="app-shell" :class="{ 'sidebar-collapsed': ui.sidebarCollapsed }">
         <aside class="sidebar" :class="{ 'is-open': ui.mobileNavOpen }">
-          <div class="sidebar-top">
-            <div class="sidebar-brand-row">
-              <div class="brand-mark">C</div>
-              <div v-if="!ui.sidebarCollapsed" class="brand-copy">
-                <strong>Cash Guard</strong>
-                <span>Controle pessoal</span>
+          <div class="sidebar-scroll">
+            <div class="sidebar-top">
+              <div class="sidebar-brand-row">
+                <div class="brand-mark">C</div>
+                <div v-if="!ui.sidebarCollapsed" class="brand-copy">
+                  <strong>Cash Guard</strong>
+                  <span>Controle pessoal</span>
+                </div>
               </div>
+
+              <button
+                class="icon-button collapse-toggle desktop-only"
+                type="button"
+                :title="ui.sidebarCollapsed ? 'Expandir menu' : 'Colapsar menu'"
+                @click="ui.toggleSidebarCollapsed()"
+              >
+                <AppIcon :name="ui.sidebarCollapsed ? 'expand' : 'collapse'" />
+              </button>
             </div>
 
-            <button
-              class="icon-button collapse-toggle desktop-only"
-              type="button"
-              :title="ui.sidebarCollapsed ? 'Expandir menu' : 'Colapsar menu'"
-              @click="ui.toggleSidebarCollapsed()"
-            >
-              <AppIcon :name="ui.sidebarCollapsed ? 'expand' : 'collapse'" />
-            </button>
+            <nav class="nav-list nav-list-primary">
+              <RouterLink
+                v-for="item in navigation"
+                :key="item.to"
+                :to="item.to"
+                class="nav-item"
+                :title="ui.sidebarCollapsed ? item.label : undefined"
+              >
+                <span class="nav-icon"><AppIcon :name="item.icon" /></span>
+                <span v-if="!ui.sidebarCollapsed" class="nav-label">{{ item.label }}</span>
+              </RouterLink>
+            </nav>
           </div>
 
-          <nav class="nav-list nav-list-primary">
-            <RouterLink v-for="item in navigation" :key="item.to" :to="item.to" class="nav-item" :title="ui.sidebarCollapsed ? item.label : undefined">
-              <span class="nav-icon"><AppIcon :name="item.icon" /></span>
-              <span v-if="!ui.sidebarCollapsed" class="nav-label">{{ item.label }}</span>
-            </RouterLink>
-          </nav>
-
           <div class="sidebar-footer">
-            <div class="sidebar-utility">
-              <ThemeToggle />
-            </div>
-
             <div v-if="auth.user && !ui.sidebarCollapsed" class="user-card user-card-compact">
               <strong>{{ auth.user.name }}</strong>
               <p>{{ auth.user.email }}</p>
             </div>
 
-            <button class="ghost-button logout-button" @click="handleLogout">
+            <button class="ghost-button logout-button" :title="ui.sidebarCollapsed ? 'Sair' : undefined" @click="handleLogout">
               <span class="nav-icon"><AppIcon name="audit" /></span>
               <span v-if="!ui.sidebarCollapsed">Sair</span>
             </button>
@@ -142,7 +146,7 @@ const navigation = [
               </div>
 
               <div class="topbar-actions">
-                <ThemeToggle class="topbar-theme" />
+                <ThemeToggle />
               </div>
             </div>
           </header>

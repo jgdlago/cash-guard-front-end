@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue"
 
+import EmptyState from "@/components/EmptyState.vue"
+import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
 import { api } from "@/services/api"
+import { useUiStore } from "@/stores/ui"
 import type { PaymentSource, PaymentSourceType } from "@/types/api"
 
+const ui = useUiStore()
 const paymentSources = ref<PaymentSource[]>([])
 const parentCandidates = ref<PaymentSource[]>([])
 const errorMessage = ref("")
@@ -49,6 +53,7 @@ function buildPaymentSourceParams() {
 
 async function loadPaymentSources() {
   loading.value = true
+  errorMessage.value = ""
 
   try {
     const [sources, parents] = await Promise.all([
@@ -80,6 +85,7 @@ async function submitForm() {
     form.type = "wallet"
     form.parent_payment_source_id = ""
     form.credit_limit = ""
+    ui.pushToast("Origem criada.", "success")
     await loadPaymentSources()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Falha ao salvar origem."
@@ -100,17 +106,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <section class="page-section payment-sources-page">
+  <section class="page-section payment-sources-page refined-page">
     <PageHeader
       eyebrow="Origens"
-      title="Origens de pagamento opcionais"
-      description="Classifique cartões e contas pagadoras quando fizer sentido, sem burocratizar o uso principal."
+      title="Origens de pagamento"
+      description="Cadastro opcional para enriquecer a leitura dos lançamentos sem adicionar burocracia ao uso diário."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="content-grid-2 split-workspace">
-      <div class="section-card sticky-panel">
+    <section class="workspace-grid workspace-grid-refined">
+      <div class="section-card section-card-tight form-panel surface-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">Nova origem</p>
@@ -118,7 +124,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <form class="form-grid" @submit.prevent="submitForm">
+        <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
           <label class="field-span-2">
             Nome
             <input v-model="form.name" type="text" placeholder="Ex: Nubank" required />
@@ -157,15 +163,15 @@ onMounted(() => {
         </form>
       </div>
 
-      <div class="section-card">
+      <div class="section-card section-card-tight list-panel surface-panel">
         <div class="section-header compact list-header">
           <div>
-            <p class="eyebrow">Cadastro opcional</p>
+            <p class="eyebrow">Lista</p>
             <h2>Origens existentes</h2>
           </div>
         </div>
 
-        <div class="filter-panel">
+        <div class="filter-panel filter-panel-inline filter-panel-refined">
           <div class="filter-bar">
             <select v-model="filters.type">
               <option value="all">Todos os tipos</option>
@@ -180,34 +186,38 @@ onMounted(() => {
             <input v-model="filters.query" type="search" placeholder="Buscar origem" />
           </div>
 
-          <div class="filter-bar">
-            <button class="primary-button" type="button" @click="loadPaymentSources">Aplicar filtros</button>
+          <div class="filter-bar filter-bar-actions">
+            <button class="primary-button" type="button" @click="loadPaymentSources">Aplicar</button>
             <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
         </div>
 
-        <p v-if="loading" class="muted-text">Carregando origens...</p>
+        <LoadingState v-if="loading" message="Carregando origens..." />
 
-        <div v-else-if="!paymentSources.length" class="empty-state">
-          <strong>Nenhuma origem encontrada.</strong>
-          <p>O sistema continua funcionando normalmente sem esse cadastro.</p>
-        </div>
+        <template v-else>
+          <EmptyState
+            v-if="!paymentSources.length"
+            title="Nenhuma origem encontrada."
+            description="O sistema continua funcionando normalmente mesmo sem esse cadastro."
+          />
 
-        <div v-else class="stack-list source-card-list">
-          <article v-for="source in paymentSources" :key="source.id" class="source-card">
-            <div class="source-card-top">
-              <div>
-                <span class="badge">{{ typeLabel(source.type) }}</span>
-                <strong>{{ source.name }}</strong>
+          <div v-else class="stack-list stack-list-tight source-card-list">
+            <article v-for="source in paymentSources" :key="source.id" class="source-card refined-source-card">
+              <div class="source-card-top">
+                <div>
+                  <div class="inline-meta-row inline-meta-row-wrap">
+                    <strong>{{ source.name }}</strong>
+                    <span class="badge">{{ typeLabel(source.type) }}</span>
+                  </div>
+                  <p>
+                    {{ source.parent_payment_source_id ? `Vinculada à origem #${source.parent_payment_source_id}` : "Sem vínculo pai" }}
+                  </p>
+                </div>
+                <strong>{{ source.credit_limit ?? "Sem limite" }}</strong>
               </div>
-              <strong>{{ source.credit_limit ?? "Sem limite" }}</strong>
-            </div>
-
-            <p class="muted-text">
-              {{ source.parent_payment_source_id ? `Vinculada à origem #${source.parent_payment_source_id}` : "Sem vínculo pai" }}
-            </p>
-          </article>
-        </div>
+            </article>
+          </div>
+        </template>
       </div>
     </section>
   </section>
