@@ -8,6 +8,7 @@ export type PaymentSourceType =
   | "debit_card"
   | "wallet"
   | "other"
+export type RecurringFrequency = "daily" | "weekly" | "monthly" | "yearly"
 
 export interface User {
   id: number
@@ -33,6 +34,8 @@ export interface Category {
   icon: string | null
   is_active: boolean
   display_order: number
+  is_hidden: boolean
+  display_order_override: number | null
 }
 
 export interface PaymentSource {
@@ -78,6 +81,40 @@ export interface InstallmentPlan {
   payment_source_id: number | null
   category_id: number | null
   transactions: Transaction[]
+}
+
+export interface RecurringRule {
+  id: number
+  type: TransactionType
+  frequency: RecurringFrequency
+  status_on_generate: TransactionStatus
+  amount_cents: number
+  amount: string
+  currency_code: string
+  description: string
+  notes: string | null
+  starts_on: string
+  next_run_on: string
+  ends_on: string | null
+  is_active: boolean
+  payment_source_id: number | null
+  category_id: number | null
+  last_processed_at: string | null
+  transactions_count?: number
+}
+
+export interface FinancialAuditLog {
+  id: number
+  user_id: number
+  auditable_type: string | null
+  auditable_id: number | null
+  event: string
+  before: Record<string, unknown> | null
+  after: Record<string, unknown> | null
+  context: Record<string, unknown> | null
+  ip_address: string | null
+  user_agent: string | null
+  created_at: string
 }
 
 export interface DashboardSummary {

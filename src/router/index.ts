@@ -1,11 +1,13 @@
 import { createRouter, createWebHistory } from "vue-router"
 
 import { tokenStorage } from "@/services/api"
+import AuditLogsView from "@/views/AuditLogsView.vue"
 import AuthView from "@/views/AuthView.vue"
 import CategoriesView from "@/views/CategoriesView.vue"
 import DashboardView from "@/views/DashboardView.vue"
 import InstallmentsView from "@/views/InstallmentsView.vue"
 import PaymentSourcesView from "@/views/PaymentSourcesView.vue"
+import RecurringRulesView from "@/views/RecurringRulesView.vue"
 import TransactionsView from "@/views/TransactionsView.vue"
 
 const router = createRouter({
@@ -18,6 +20,8 @@ const router = createRouter({
     { path: "/categories", name: "categories", component: CategoriesView, meta: { requiresAuth: true } },
     { path: "/payment-sources", name: "payment-sources", component: PaymentSourcesView, meta: { requiresAuth: true } },
     { path: "/installments", name: "installments", component: InstallmentsView, meta: { requiresAuth: true } },
+    { path: "/recurring-rules", name: "recurring-rules", component: RecurringRulesView, meta: { requiresAuth: true } },
+    { path: "/audit-logs", name: "audit-logs", component: AuditLogsView, meta: { requiresAuth: true } },
   ],
 })
 

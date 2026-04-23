@@ -25,6 +25,10 @@ const pageTitle = computed(() => {
       return "Origens"
     case "installments":
       return "Parcelamentos"
+    case "recurring-rules":
+      return "Recorrências"
+    case "audit-logs":
+      return "Auditoria"
     default:
       return "Cash Guard"
   }
@@ -52,8 +56,10 @@ const navigation = [
   { to: "/dashboard", label: "Dashboard", shortLabel: "Resumo" },
   { to: "/transactions", label: "Lançamentos", shortLabel: "Extrato" },
   { to: "/installments", label: "Parcelamentos", shortLabel: "Parcelas" },
+  { to: "/recurring-rules", label: "Recorrências", shortLabel: "Recorrências" },
   { to: "/categories", label: "Categorias", shortLabel: "Categorias" },
   { to: "/payment-sources", label: "Origens", shortLabel: "Origens" },
+  { to: "/audit-logs", label: "Auditoria", shortLabel: "Auditoria" },
 ]
 </script>
 

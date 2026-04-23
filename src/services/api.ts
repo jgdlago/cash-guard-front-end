@@ -2,9 +2,11 @@ import type {
   AuthResponse,
   Category,
   DashboardResponse,
+  FinancialAuditLog,
   InstallmentPlan,
   PaginatedResponse,
   PaymentSource,
+  RecurringRule,
   Transaction,
   User,
 } from "@/types/api"
@@ -85,6 +87,9 @@ export const api = {
     request<Category[]>(`/categories${toQueryString(params)}`),
   createCategory: (payload: Record<string, unknown>) =>
     request<Category>("/categories", { method: "POST", body: JSON.stringify(payload) }),
+  updateCategoryPreference: (id: number, payload: Record<string, unknown>) =>
+    request<Category>(`/categories/${id}/preferences`, { method: "PUT", body: JSON.stringify(payload) }),
+  deleteCategoryPreference: (id: number) => request<void>(`/categories/${id}/preferences`, { method: "DELETE" }),
   paymentSources: (params?: Record<string, string | number | boolean | null | undefined>) =>
     request<PaymentSource[]>(`/payment-sources${toQueryString(params)}`),
   createPaymentSource: (payload: Record<string, unknown>) =>
@@ -101,4 +106,13 @@ export const api = {
   createInstallmentPlan: (payload: Record<string, unknown>) =>
     request<InstallmentPlan>("/installment-plans", { method: "POST", body: JSON.stringify(payload) }),
   cancelInstallmentPlan: (id: number) => request<void>(`/installment-plans/${id}`, { method: "DELETE" }),
+  recurringRules: (params?: Record<string, string | number | boolean | null | undefined>) =>
+    request<PaginatedResponse<RecurringRule>>(`/recurring-rules${toQueryString(params)}`),
+  createRecurringRule: (payload: Record<string, unknown>) =>
+    request<RecurringRule>("/recurring-rules", { method: "POST", body: JSON.stringify(payload) }),
+  updateRecurringRule: (id: number, payload: Record<string, unknown>) =>
+    request<RecurringRule>(`/recurring-rules/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
+  deactivateRecurringRule: (id: number) => request<void>(`/recurring-rules/${id}`, { method: "DELETE" }),
+  financialAuditLogs: (params?: Record<string, string | number | boolean | null | undefined>) =>
+    request<PaginatedResponse<FinancialAuditLog>>(`/financial-audit-logs${toQueryString(params)}`),
 }

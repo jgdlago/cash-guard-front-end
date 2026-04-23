@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue"
 
+import EmptyState from "@/components/EmptyState.vue"
+import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
 import { api } from "@/services/api"
+import { useUiStore } from "@/stores/ui"
 import type { Category, CategoryDirection } from "@/types/api"
 
+const ui = useUiStore()
 const categories = ref<Category[]>([])
 const errorMessage = ref("")
 const loading = ref(false)
 const saving = ref(false)
+const preferenceSavingId = ref<number | null>(null)
 const filters = reactive({
   query: "",
   scope: "all",
@@ -25,6 +30,7 @@ function buildCategoryParams() {
     "filter[name]": filters.query || undefined,
     "filter[scope]": filters.scope !== "all" ? filters.scope : undefined,
     "filter[direction]": filters.direction !== "all" ? filters.direction : undefined,
+    "filter[with_hidden]": true,
     sort: "name",
   }
 }
@@ -49,11 +55,60 @@ async function submitForm() {
     await api.createCategory(form)
     form.name = ""
     form.direction = "expense"
+    ui.pushToast("Categoria criada.", "success")
     await loadCategories()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Falha ao criar categoria."
   } finally {
     saving.value = false
+  }
+}
+
+async function toggleHidden(category: Category) {
+  preferenceSavingId.value = category.id
+
+  try {
+    await api.updateCategoryPreference(category.id, {
+      is_hidden: !category.is_hidden,
+      display_order_override: category.display_order_override,
+    })
+    ui.pushToast(category.is_hidden ? "Categoria reexibida." : "Categoria ocultada.", "info")
+    await loadCategories()
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Falha ao atualizar preferência."
+  } finally {
+    preferenceSavingId.value = null
+  }
+}
+
+async function bumpOrder(category: Category) {
+  preferenceSavingId.value = category.id
+
+  try {
+    await api.updateCategoryPreference(category.id, {
+      is_hidden: category.is_hidden,
+      display_order_override: (category.display_order_override ?? category.display_order) + 10,
+    })
+    ui.pushToast("Preferência de ordem atualizada.", "success")
+    await loadCategories()
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Falha ao atualizar ordenação."
+  } finally {
+    preferenceSavingId.value = null
+  }
+}
+
+async function resetPreference(category: Category) {
+  preferenceSavingId.value = category.id
+
+  try {
+    await api.deleteCategoryPreference(category.id)
+    ui.pushToast("Preferência removida.", "info")
+    await loadCategories()
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : "Falha ao remover preferência."
+  } finally {
+    preferenceSavingId.value = null
   }
 }
 
@@ -74,7 +129,7 @@ onMounted(() => {
     <PageHeader
       eyebrow="Categorias"
       title="Catálogo de classificação"
-      description="Consuma o catálogo usando filtros reais do backend e mantenha suas categorias próprias no mesmo fluxo."
+      description="Gerencie o catálogo e ajuste preferências visuais por usuário sem alterar as categorias padrão do sistema."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
@@ -141,25 +196,45 @@ onMounted(() => {
           </div>
         </div>
 
-        <p v-if="loading" class="muted-text">Carregando categorias...</p>
+        <LoadingState v-if="loading" message="Carregando categorias..." />
 
-        <div v-else-if="!categories.length" class="empty-state">
-          <strong>Nenhuma categoria encontrada.</strong>
-          <p>Ajuste os filtros ou crie uma categoria personalizada.</p>
-        </div>
+        <template v-else>
+          <EmptyState
+            v-if="!categories.length"
+            title="Nenhuma categoria encontrada."
+            description="Ajuste os filtros ou crie uma categoria personalizada."
+          />
 
-        <div v-else class="stack-list">
-          <article v-for="category in categories" :key="category.id" class="row-card row-card-detail">
-            <div>
-              <strong>{{ category.name }}</strong>
-              <p>{{ category.kind === "system" ? "Padrão do sistema" : "Categoria personalizada" }}</p>
-            </div>
-            <div class="row-button-group row-button-group-inline">
-              <span class="badge">{{ category.kind }}</span>
-              <span class="badge">{{ category.direction }}</span>
-            </div>
-          </article>
-        </div>
+          <div v-else class="stack-list">
+            <article v-for="category in categories" :key="category.id" class="row-card row-card-detail category-row-card">
+              <div>
+                <strong>{{ category.name }}</strong>
+                <p>
+                  {{ category.kind === "system" ? "Padrão do sistema" : "Categoria personalizada" }}
+                  <span v-if="category.is_hidden"> · Oculta</span>
+                  <span v-if="category.display_order_override !== null"> · Ordem personalizada</span>
+                </p>
+              </div>
+              <div class="row-actions action-stack category-actions">
+                <div class="row-button-group row-button-group-inline">
+                  <span class="badge">{{ category.kind }}</span>
+                  <span class="badge">{{ category.direction }}</span>
+                </div>
+                <div class="row-button-group">
+                  <button class="ghost-button" type="button" :disabled="preferenceSavingId === category.id" @click="toggleHidden(category)">
+                    {{ category.is_hidden ? "Exibir" : "Ocultar" }}
+                  </button>
+                  <button class="ghost-button" type="button" :disabled="preferenceSavingId === category.id" @click="bumpOrder(category)">
+                    Priorizar
+                  </button>
+                  <button class="ghost-button" type="button" :disabled="preferenceSavingId === category.id" @click="resetPreference(category)">
+                    Resetar
+                  </button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </template>
       </div>
     </section>
   </section>
