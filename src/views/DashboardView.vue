@@ -36,7 +36,7 @@ onMounted(() => {
 
 <template>
   <section class="page-section dashboard-page refined-page">
-    <PageHeader eyebrow="Dashboard" title="Resumo mensal" :description="`Visão consolidada de ${currentMonthLabel}.`">
+    <PageHeader eyebrow="Dashboard" title="Resumo mensal" :description="`Leitura do período de ${currentMonthLabel}.`">
       <label class="compact-field compact-field-inline month-field">
         <span>Mês</span>
         <input v-model="month" type="date" @change="loadDashboard" />
@@ -47,41 +47,41 @@ onMounted(() => {
     <LoadingState v-if="loading" message="Carregando resumo..." />
 
     <template v-else-if="dashboard">
-      <section class="hero-banner hero-banner-compact dashboard-hero">
+      <section class="hero-banner hero-banner-compact dashboard-hero dashboard-hero-refined">
         <div class="hero-banner-main">
           <p class="eyebrow">Saldo do período</p>
           <h2>{{ dashboard.summary.balance }}</h2>
-          <p class="muted-text">Resumo de entradas e saídas já consolidadas para o mês selecionado.</p>
+          <p class="muted-text">Visão direta do resultado do mês selecionado.</p>
         </div>
 
-        <div class="hero-banner-actions">
+        <div class="hero-banner-actions hero-actions-stacked">
           <RouterLink to="/transactions" class="primary-button">Novo lançamento</RouterLink>
-          <RouterLink to="/recurring-rules" class="ghost-button">Ver recorrências</RouterLink>
+          <RouterLink to="/recurring-rules" class="ghost-button">Recorrências</RouterLink>
         </div>
       </section>
 
-      <div class="stats-grid stats-grid-tight">
-        <article class="stat-card stat-positive stat-card-compact">
+      <div class="stats-grid stats-grid-tight stats-grid-refined">
+        <article class="stat-card stat-positive stat-card-compact stat-card-refined">
           <span>Receitas</span>
           <strong>{{ dashboard.summary.income }}</strong>
-          <p class="muted-text">Entradas registradas.</p>
+          <p class="muted-text">Entradas no período.</p>
         </article>
 
-        <article class="stat-card stat-negative stat-card-compact">
+        <article class="stat-card stat-negative stat-card-compact stat-card-refined">
           <span>Despesas</span>
           <strong>{{ dashboard.summary.expense }}</strong>
-          <p class="muted-text">Saídas registradas.</p>
+          <p class="muted-text">Saídas no período.</p>
         </article>
 
-        <article class="stat-card stat-card-compact">
+        <article class="stat-card stat-card-compact stat-card-refined">
           <span>Saldo</span>
           <strong>{{ dashboard.summary.balance }}</strong>
-          <p class="muted-text">Resultado líquido do período.</p>
+          <p class="muted-text">Resultado líquido.</p>
         </article>
       </div>
 
-      <section class="dashboard-grid">
-        <section class="section-card section-card-tight">
+      <section class="dashboard-grid dashboard-grid-refined">
+        <section class="section-card section-card-tight surface-panel">
           <div class="section-header compact">
             <div>
               <p class="eyebrow">Categorias</p>
@@ -90,10 +90,14 @@ onMounted(() => {
           </div>
 
           <ul v-if="dashboard.expenses_by_category.length" class="stack-list stack-list-tight">
-            <li v-for="item in dashboard.expenses_by_category" :key="`${item.category_id}-${item.total_cents}`" class="row-card row-card-compact amount-row">
+            <li
+              v-for="item in dashboard.expenses_by_category"
+              :key="`${item.category_id}-${item.total_cents}`"
+              class="row-card row-card-compact amount-row refined-list-row"
+            >
               <div>
                 <strong>{{ item.category_name ?? "Sem categoria" }}</strong>
-                <p>Consolidação do mês atual</p>
+                <p>Consolidação atual</p>
               </div>
               <strong>{{ item.total }}</strong>
             </li>
@@ -102,32 +106,32 @@ onMounted(() => {
           <EmptyState
             v-else
             title="Nenhuma despesa categorizada ainda."
-            description="Quando houver saídas no mês, elas aparecerão aqui para leitura rápida."
+            description="As saídas do período aparecerão aqui quando existirem lançamentos." 
           />
         </section>
 
-        <section class="section-card section-card-tight">
+        <section class="section-card section-card-tight surface-panel">
           <div class="section-header compact">
             <div>
               <p class="eyebrow">Atalhos</p>
-              <h3>Próximas ações</h3>
+              <h3>Ações rápidas</h3>
             </div>
           </div>
 
           <div class="stack-list stack-list-tight">
-            <RouterLink to="/transactions" class="quick-action-card quick-action-card-compact">
+            <RouterLink to="/transactions" class="quick-action-card quick-action-card-compact quick-action-card-refined">
               <strong>Registrar lançamento</strong>
-              <p>Entrada ou saída com categoria e origem opcional.</p>
+              <p>Adicionar entrada ou saída.</p>
             </RouterLink>
 
-            <RouterLink to="/installments" class="quick-action-card quick-action-card-compact">
+            <RouterLink to="/installments" class="quick-action-card quick-action-card-compact quick-action-card-refined">
               <strong>Criar parcelamento</strong>
-              <p>Monte um plano com valores iguais ou manuais.</p>
+              <p>Montar um plano com vencimentos.</p>
             </RouterLink>
 
-            <RouterLink to="/categories" class="quick-action-card quick-action-card-compact">
+            <RouterLink to="/categories" class="quick-action-card quick-action-card-compact quick-action-card-refined">
               <strong>Revisar categorias</strong>
-              <p>Organize o catálogo e as preferências visuais do usuário.</p>
+              <p>Organizar catálogo e preferências.</p>
             </RouterLink>
           </div>
         </section>

@@ -161,13 +161,13 @@ onMounted(() => {
     <PageHeader
       eyebrow="Parcelamentos"
       title="Parcelas flexíveis"
-      description="Monte planos com leitura mais clara entre criação, soma e histórico de parcelamentos."
+      description="Leitura mais clara entre criação do plano, soma das parcelas e histórico existente."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="workspace-grid">
-      <div class="section-card section-card-tight form-panel">
+    <section class="workspace-grid workspace-grid-refined">
+      <div class="section-card section-card-tight form-panel surface-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">Novo plano</p>
@@ -227,16 +227,20 @@ onMounted(() => {
             </button>
           </template>
 
-          <div class="field-span-2 installment-summary-card installment-summary-card-compact">
+          <div class="field-span-2 installment-summary-card installment-summary-card-compact surface-subtle-panel">
             <div>
               <strong>{{ form.installments.length }} parcelas</strong>
-              <p class="muted-text">Soma informada para conferência rápida.</p>
+              <p class="muted-text">Conferência rápida antes do envio.</p>
             </div>
             <strong>{{ installmentsTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong>
           </div>
 
           <div class="field-span-2 installment-grid installment-grid-enhanced">
-            <div v-for="installment in form.installments" :key="installment.number" class="installment-row installment-row-card installment-row-card-compact">
+            <div
+              v-for="installment in form.installments"
+              :key="installment.number"
+              class="installment-row installment-row-card installment-row-card-compact"
+            >
               <strong>{{ installment.number }}ª</strong>
               <input v-model="installment.amount" type="text" inputmode="decimal" placeholder="Valor" required />
               <input v-model="installment.due_date" type="date" required />
@@ -250,7 +254,7 @@ onMounted(() => {
         </form>
       </div>
 
-      <div class="section-card section-card-tight list-panel">
+      <div class="section-card section-card-tight list-panel surface-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">Planos</p>
@@ -258,7 +262,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="filter-panel filter-panel-inline">
+        <div class="filter-panel filter-panel-inline filter-panel-refined">
           <div class="filter-bar">
             <input v-model="filters.description" type="search" placeholder="Buscar descrição" />
             <input v-model="filters.from_due_date" type="date" />
@@ -266,7 +270,7 @@ onMounted(() => {
           </div>
 
           <div class="filter-bar filter-bar-actions">
-            <button class="primary-button" type="button" @click="applyFilters">Aplicar filtros</button>
+            <button class="primary-button" type="button" @click="applyFilters">Aplicar</button>
             <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
         </div>
@@ -277,12 +281,12 @@ onMounted(() => {
           <EmptyState
             v-if="!plans.length"
             title="Nenhum parcelamento cadastrado."
-            description="Ao criar um plano, as parcelas ficam disponíveis para acompanhamento no backend e no extrato."
+            description="Ao criar um plano, as parcelas passam a compor o histórico financeiro do sistema."
           />
 
           <template v-else>
             <div class="stack-list stack-list-tight plan-card-list">
-              <article v-for="plan in plans" :key="plan.id" class="plan-card plan-card-compact">
+              <article v-for="plan in plans" :key="plan.id" class="plan-card plan-card-compact refined-plan-card">
                 <div class="plan-card-top">
                   <div>
                     <strong>{{ plan.description }}</strong>

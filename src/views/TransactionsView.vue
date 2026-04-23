@@ -174,13 +174,13 @@ onMounted(() => {
     <PageHeader
       eyebrow="Lançamentos"
       title="Entradas e saídas"
-      description="Cadastro rápido e leitura operacional do extrato, com menos ruído visual entre formulário e lista."
+      description="Fluxo principal de cadastro e leitura do extrato, com menos ruído entre filtro, formulário e lista."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="workspace-grid">
-      <div class="section-card section-card-tight form-panel">
+    <section class="workspace-grid workspace-grid-refined">
+      <div class="section-card section-card-tight form-panel surface-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">{{ isEditing ? "Edição" : "Novo lançamento" }}</p>
@@ -253,7 +253,7 @@ onMounted(() => {
         </form>
       </div>
 
-      <div class="section-card section-card-tight list-panel">
+      <div class="section-card section-card-tight list-panel surface-panel">
         <div class="section-header compact list-header">
           <div>
             <p class="eyebrow">Extrato</p>
@@ -261,7 +261,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="filter-panel filter-panel-inline">
+        <div class="filter-panel filter-panel-inline filter-panel-refined">
           <div class="filter-bar">
             <select v-model="filters.type">
               <option value="all">Todos os tipos</option>
@@ -283,7 +283,7 @@ onMounted(() => {
           </div>
 
           <div class="filter-bar filter-bar-actions">
-            <button class="primary-button" type="button" @click="applyFilters">Aplicar filtros</button>
+            <button class="primary-button" type="button" @click="applyFilters">Aplicar</button>
             <button v-if="hasActiveFilters" class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
         </div>
@@ -299,9 +299,13 @@ onMounted(() => {
 
           <template v-else>
             <ul class="stack-list stack-list-tight">
-              <li v-for="transaction in transactions" :key="transaction.id" class="row-card row-card-compact row-card-actions transaction-row">
-                <div class="transaction-main">
-                  <div class="inline-meta-row">
+              <li
+                v-for="transaction in transactions"
+                :key="transaction.id"
+                class="row-card row-card-compact row-card-actions transaction-row refined-list-row"
+              >
+                <div class="transaction-main transaction-main-refined">
+                  <div class="inline-meta-row inline-meta-row-wrap">
                     <span class="transaction-type-pill" :class="`is-${transaction.type}`">
                       {{ transaction.type === "expense" ? "Despesa" : "Receita" }}
                     </span>

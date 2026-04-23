@@ -129,13 +129,13 @@ onMounted(() => {
     <PageHeader
       eyebrow="Categorias"
       title="Catálogo de classificação"
-      description="Gerencie o catálogo com mais clareza entre cadastro, filtros e preferências visuais por usuário."
+      description="Separação mais clara entre criação de categoria, filtros e preferências de exibição do usuário."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
 
-    <section class="workspace-grid">
-      <div class="section-card section-card-tight form-panel">
+    <section class="workspace-grid workspace-grid-refined">
+      <div class="section-card section-card-tight form-panel surface-panel">
         <div class="section-header compact">
           <div>
             <p class="eyebrow">Nova categoria</p>
@@ -164,7 +164,7 @@ onMounted(() => {
         </form>
       </div>
 
-      <div class="section-card section-card-tight list-panel">
+      <div class="section-card section-card-tight list-panel surface-panel">
         <div class="section-header compact list-header">
           <div>
             <p class="eyebrow">Lista</p>
@@ -172,7 +172,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="filter-panel filter-panel-inline">
+        <div class="filter-panel filter-panel-inline filter-panel-refined">
           <div class="filter-bar">
             <select v-model="filters.scope">
               <option value="all">Todas</option>
@@ -191,7 +191,7 @@ onMounted(() => {
           </div>
 
           <div class="filter-bar filter-bar-actions">
-            <button class="primary-button" type="button" @click="loadCategories">Aplicar filtros</button>
+            <button class="primary-button" type="button" @click="loadCategories">Aplicar</button>
             <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
         </div>
@@ -206,8 +206,12 @@ onMounted(() => {
           />
 
           <div v-else class="stack-list stack-list-tight">
-            <article v-for="category in categories" :key="category.id" class="row-card row-card-compact row-card-detail category-row-card">
-              <div>
+            <article
+              v-for="category in categories"
+              :key="category.id"
+              class="row-card row-card-compact row-card-detail category-row-card refined-list-row"
+            >
+              <div class="transaction-main transaction-main-refined">
                 <div class="inline-meta-row inline-meta-row-wrap">
                   <strong>{{ category.name }}</strong>
                   <span class="badge">{{ category.kind }}</span>

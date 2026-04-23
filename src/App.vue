@@ -2,6 +2,7 @@
 import { computed, onMounted, watch } from "vue"
 import { RouterLink, RouterView, useRoute, useRouter } from "vue-router"
 
+import AppIcon from "@/components/AppIcon.vue"
 import ThemeToggle from "@/components/ThemeToggle.vue"
 import ToastStack from "@/components/ToastStack.vue"
 import { useAuthStore } from "@/stores/auth"
@@ -53,14 +54,14 @@ async function handleLogout() {
 }
 
 const navigation = [
-  { to: "/dashboard", label: "Dashboard", shortLabel: "Resumo" },
-  { to: "/transactions", label: "Lançamentos", shortLabel: "Extrato" },
-  { to: "/installments", label: "Parcelamentos", shortLabel: "Parcelas" },
-  { to: "/recurring-rules", label: "Recorrências", shortLabel: "Recorrências" },
-  { to: "/categories", label: "Categorias", shortLabel: "Categorias" },
-  { to: "/payment-sources", label: "Origens", shortLabel: "Origens" },
-  { to: "/audit-logs", label: "Auditoria", shortLabel: "Auditoria" },
-]
+  { to: "/dashboard", label: "Dashboard", shortLabel: "Resumo", icon: "dashboard" },
+  { to: "/transactions", label: "Lançamentos", shortLabel: "Extrato", icon: "transactions" },
+  { to: "/installments", label: "Parcelamentos", shortLabel: "Parcelas", icon: "installments" },
+  { to: "/recurring-rules", label: "Recorrências", shortLabel: "Recorrências", icon: "recurring" },
+  { to: "/categories", label: "Categorias", shortLabel: "Categorias", icon: "categories" },
+  { to: "/payment-sources", label: "Origens", shortLabel: "Origens", icon: "sources" },
+  { to: "/audit-logs", label: "Auditoria", shortLabel: "Auditoria", icon: "audit" },
+] as const
 </script>
 
 <template>
@@ -80,33 +81,48 @@ const navigation = [
     </template>
 
     <template v-else>
-      <div class="app-shell">
+      <div class="app-shell" :class="{ 'sidebar-collapsed': ui.sidebarCollapsed }">
         <aside class="sidebar" :class="{ 'is-open': ui.mobileNavOpen }">
-          <div class="sidebar-brand">
-            <p class="eyebrow">Cash Guard</p>
-            <h1>Finanças pessoais diretas.</h1>
-            <p class="sidebar-copy">
-              Entradas, saídas, categorias e recorrências com uma linguagem mais próxima de rotina do que de banco.
-            </p>
+          <div class="sidebar-top">
+            <div class="sidebar-brand-row">
+              <div class="brand-mark">C</div>
+              <div v-if="!ui.sidebarCollapsed" class="brand-copy">
+                <strong>Cash Guard</strong>
+                <span>Controle pessoal</span>
+              </div>
+            </div>
+
+            <button
+              class="icon-button collapse-toggle desktop-only"
+              type="button"
+              :title="ui.sidebarCollapsed ? 'Expandir menu' : 'Colapsar menu'"
+              @click="ui.toggleSidebarCollapsed()"
+            >
+              <AppIcon :name="ui.sidebarCollapsed ? 'expand' : 'collapse'" />
+            </button>
           </div>
 
-          <nav class="nav-list">
-            <RouterLink v-for="item in navigation" :key="item.to" :to="item.to" class="nav-item">
-              <span>{{ item.label }}</span>
-              <small>{{ item.shortLabel }}</small>
+          <nav class="nav-list nav-list-primary">
+            <RouterLink v-for="item in navigation" :key="item.to" :to="item.to" class="nav-item" :title="ui.sidebarCollapsed ? item.label : undefined">
+              <span class="nav-icon"><AppIcon :name="item.icon" /></span>
+              <span v-if="!ui.sidebarCollapsed" class="nav-label">{{ item.label }}</span>
             </RouterLink>
           </nav>
 
           <div class="sidebar-footer">
-            <div v-if="auth.user" class="user-card">
+            <div class="sidebar-utility">
+              <ThemeToggle />
+            </div>
+
+            <div v-if="auth.user && !ui.sidebarCollapsed" class="user-card user-card-compact">
               <strong>{{ auth.user.name }}</strong>
               <p>{{ auth.user.email }}</p>
             </div>
 
-            <div class="sidebar-actions">
-              <ThemeToggle />
-              <button class="ghost-button" @click="handleLogout">Sair</button>
-            </div>
+            <button class="ghost-button logout-button" @click="handleLogout">
+              <span class="nav-icon"><AppIcon name="audit" /></span>
+              <span v-if="!ui.sidebarCollapsed">Sair</span>
+            </button>
           </div>
         </aside>
 
@@ -115,15 +131,17 @@ const navigation = [
         <div class="shell-main">
           <header class="topbar">
             <div class="topbar-inner content-frame">
-              <div>
-                <p class="eyebrow">Aplicação</p>
-                <strong class="topbar-title">{{ pageTitle }}</strong>
+              <div class="topbar-heading">
+                <button class="icon-button mobile-nav-trigger" type="button" @click="ui.openMobileNav()">
+                  <AppIcon name="menu" />
+                </button>
+                <div>
+                  <p class="eyebrow">Aplicação</p>
+                  <strong class="topbar-title">{{ pageTitle }}</strong>
+                </div>
               </div>
 
               <div class="topbar-actions">
-                <button class="ghost-button mobile-nav-trigger" type="button" @click="ui.openMobileNav()">
-                  Menu
-                </button>
                 <ThemeToggle class="topbar-theme" />
               </div>
             </div>
@@ -138,7 +156,8 @@ const navigation = [
 
         <nav class="mobile-bottom-nav">
           <RouterLink v-for="item in navigation.slice(0, 4)" :key="item.to" :to="item.to" class="mobile-bottom-link">
-            {{ item.shortLabel }}
+            <span class="mobile-bottom-icon"><AppIcon :name="item.icon" /></span>
+            <span>{{ item.shortLabel }}</span>
           </RouterLink>
         </nav>
       </div>
