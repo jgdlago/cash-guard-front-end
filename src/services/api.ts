@@ -29,6 +29,25 @@ function buildHeaders(init?: HeadersInit): Headers {
   return headers
 }
 
+function toQueryString(params?: Record<string, string | number | boolean | null | undefined>) {
+  if (!params) {
+    return ""
+  }
+
+  const search = new URLSearchParams()
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") {
+      continue
+    }
+
+    search.set(key, String(value))
+  }
+
+  const serialized = search.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
@@ -62,19 +81,23 @@ export const api = {
   me: () => request<User>("/auth/me"),
   logout: () => request<void>("/auth/logout", { method: "POST" }),
   dashboard: (month?: string) => request<DashboardResponse>(`/dashboard${month ? `?month=${month}` : ""}`),
-  categories: () => request<Category[]>("/categories"),
+  categories: (params?: Record<string, string | number | boolean | null | undefined>) =>
+    request<Category[]>(`/categories${toQueryString(params)}`),
   createCategory: (payload: Record<string, unknown>) =>
     request<Category>("/categories", { method: "POST", body: JSON.stringify(payload) }),
-  paymentSources: () => request<PaymentSource[]>("/payment-sources"),
+  paymentSources: (params?: Record<string, string | number | boolean | null | undefined>) =>
+    request<PaymentSource[]>(`/payment-sources${toQueryString(params)}`),
   createPaymentSource: (payload: Record<string, unknown>) =>
     request<PaymentSource>("/payment-sources", { method: "POST", body: JSON.stringify(payload) }),
-  transactions: () => request<PaginatedResponse<Transaction>>("/transactions"),
+  transactions: (params?: Record<string, string | number | boolean | null | undefined>) =>
+    request<PaginatedResponse<Transaction>>(`/transactions${toQueryString(params)}`),
   createTransaction: (payload: Record<string, unknown>) =>
     request<Transaction>("/transactions", { method: "POST", body: JSON.stringify(payload) }),
   updateTransaction: (id: number, payload: Record<string, unknown>) =>
     request<Transaction>(`/transactions/${id}`, { method: "PATCH", body: JSON.stringify(payload) }),
   cancelTransaction: (id: number) => request<void>(`/transactions/${id}`, { method: "DELETE" }),
-  installmentPlans: () => request<PaginatedResponse<InstallmentPlan>>("/installment-plans"),
+  installmentPlans: (params?: Record<string, string | number | boolean | null | undefined>) =>
+    request<PaginatedResponse<InstallmentPlan>>(`/installment-plans${toQueryString(params)}`),
   createInstallmentPlan: (payload: Record<string, unknown>) =>
     request<InstallmentPlan>("/installment-plans", { method: "POST", body: JSON.stringify(payload) }),
   cancelInstallmentPlan: (id: number) => request<void>(`/installment-plans/${id}`, { method: "DELETE" }),

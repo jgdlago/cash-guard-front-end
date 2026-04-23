@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue"
+import { onMounted, reactive, ref } from "vue"
 
 import PageHeader from "@/components/PageHeader.vue"
 import { api } from "@/services/api"
@@ -12,6 +12,7 @@ const saving = ref(false)
 const filters = reactive({
   query: "",
   scope: "all",
+  direction: "all",
 })
 
 const form = reactive({
@@ -19,24 +20,20 @@ const form = reactive({
   direction: "expense" as CategoryDirection,
 })
 
-const filteredCategories = computed(() => {
-  return categories.value.filter((category) => {
-    const matchesQuery = !filters.query || category.name.toLowerCase().includes(filters.query.toLowerCase())
-    const matchesScope =
-      filters.scope === "all" || (filters.scope === "system" ? category.kind === "system" : category.kind === "custom")
-
-    return matchesQuery && matchesScope
-  })
-})
-
-const systemCategories = computed(() => filteredCategories.value.filter((category) => category.kind === "system"))
-const customCategories = computed(() => filteredCategories.value.filter((category) => category.kind === "custom"))
+function buildCategoryParams() {
+  return {
+    "filter[name]": filters.query || undefined,
+    "filter[scope]": filters.scope !== "all" ? filters.scope : undefined,
+    "filter[direction]": filters.direction !== "all" ? filters.direction : undefined,
+    sort: "name",
+  }
+}
 
 async function loadCategories() {
   loading.value = true
 
   try {
-    categories.value = await api.categories()
+    categories.value = await api.categories(buildCategoryParams())
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Falha ao carregar categorias."
   } finally {
@@ -60,6 +57,13 @@ async function submitForm() {
   }
 }
 
+function clearFilters() {
+  filters.query = ""
+  filters.scope = "all"
+  filters.direction = "all"
+  void loadCategories()
+}
+
 onMounted(() => {
   void loadCategories()
 })
@@ -70,7 +74,7 @@ onMounted(() => {
     <PageHeader
       eyebrow="Categorias"
       title="Catálogo de classificação"
-      description="Misture a base padrão do sistema com categorias próprias sem perder a simplicidade do lançamento."
+      description="Consuma o catálogo usando filtros reais do backend e mantenha suas categorias próprias no mesmo fluxo."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
@@ -111,7 +115,9 @@ onMounted(() => {
             <p class="eyebrow">Lista</p>
             <h2>Categorias disponíveis</h2>
           </div>
+        </div>
 
+        <div class="filter-panel">
           <div class="filter-bar">
             <select v-model="filters.scope">
               <option value="all">Todas</option>
@@ -119,64 +125,41 @@ onMounted(() => {
               <option value="custom">Personalizadas</option>
             </select>
 
+            <select v-model="filters.direction">
+              <option value="all">Todas as direções</option>
+              <option value="expense">Despesa</option>
+              <option value="income">Receita</option>
+              <option value="both">Ambas</option>
+            </select>
+
             <input v-model="filters.query" type="search" placeholder="Buscar categoria" />
+          </div>
+
+          <div class="filter-bar">
+            <button class="primary-button" type="button" @click="loadCategories">Aplicar filtros</button>
+            <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
           </div>
         </div>
 
         <p v-if="loading" class="muted-text">Carregando categorias...</p>
 
-        <template v-else>
-          <section class="stack-list grouped-list">
-            <div class="list-group">
-              <div class="list-group-header">
-                <div>
-                  <strong>Padrão do sistema</strong>
-                  <p>Categorias semeadas e compartilhadas entre usuários.</p>
-                </div>
-                <span class="badge">{{ systemCategories.length }}</span>
-              </div>
+        <div v-else-if="!categories.length" class="empty-state">
+          <strong>Nenhuma categoria encontrada.</strong>
+          <p>Ajuste os filtros ou crie uma categoria personalizada.</p>
+        </div>
 
-              <div v-if="systemCategories.length" class="stack-list">
-                <article v-for="category in systemCategories" :key="category.id" class="row-card row-card-detail">
-                  <div>
-                    <strong>{{ category.name }}</strong>
-                    <p>{{ category.slug }}</p>
-                  </div>
-                  <span class="badge">{{ category.direction }}</span>
-                </article>
-              </div>
-
-              <div v-else class="empty-state compact-empty-state">
-                <strong>Nenhuma categoria padrão neste filtro.</strong>
-              </div>
+        <div v-else class="stack-list">
+          <article v-for="category in categories" :key="category.id" class="row-card row-card-detail">
+            <div>
+              <strong>{{ category.name }}</strong>
+              <p>{{ category.kind === "system" ? "Padrão do sistema" : "Categoria personalizada" }}</p>
             </div>
-
-            <div class="list-group">
-              <div class="list-group-header">
-                <div>
-                  <strong>Personalizadas</strong>
-                  <p>Categorias criadas especificamente para o seu uso.</p>
-                </div>
-                <span class="badge">{{ customCategories.length }}</span>
-              </div>
-
-              <div v-if="customCategories.length" class="stack-list">
-                <article v-for="category in customCategories" :key="category.id" class="row-card row-card-detail">
-                  <div>
-                    <strong>{{ category.name }}</strong>
-                    <p>Categoria personalizada</p>
-                  </div>
-                  <span class="badge">{{ category.direction }}</span>
-                </article>
-              </div>
-
-              <div v-else class="empty-state compact-empty-state">
-                <strong>Nenhuma categoria personalizada encontrada.</strong>
-                <p>Crie uma nova categoria para adaptar o extrato à sua rotina.</p>
-              </div>
+            <div class="row-button-group row-button-group-inline">
+              <span class="badge">{{ category.kind }}</span>
+              <span class="badge">{{ category.direction }}</span>
             </div>
-          </section>
-        </template>
+          </article>
+        </div>
       </div>
     </section>
   </section>

@@ -383,6 +383,11 @@ label,
   background: var(--bg-elevated);
   border-color: var(--border-subtle);
 }
+.filter-panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+}
 .filter-bar {
   display: flex;
   flex-wrap: wrap;
@@ -411,6 +416,17 @@ label,
   display: grid;
   justify-items: end;
   gap: 10px;
+}
+.action-stack {
+  min-width: 180px;
+}
+.row-button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.row-button-group-inline {
+  justify-content: flex-end;
 }
 .transaction-row strong,
 .source-card strong,

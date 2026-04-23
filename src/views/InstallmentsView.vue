@@ -14,6 +14,11 @@ const saving = ref(false)
 const mode = ref<"manual" | "equal">("manual")
 const equalInstallmentsCount = ref("2")
 const equalInstallmentAmount = ref("")
+const filters = reactive({
+  description: "",
+  from_due_date: "",
+  to_due_date: "",
+})
 
 const form = reactive({
   description: "",
@@ -55,14 +60,23 @@ function applyEqualInstallments() {
   createInstallments(count, equalInstallmentAmount.value)
 }
 
+function buildInstallmentParams() {
+  return {
+    "filter[description]": filters.description || undefined,
+    "filter[from_due_date]": filters.from_due_date || undefined,
+    "filter[to_due_date]": filters.to_due_date || undefined,
+    sort: "-created_at",
+  }
+}
+
 async function loadPage() {
   loading.value = true
 
   try {
     const [plansResponse, categoriesResponse, paymentSourcesResponse] = await Promise.all([
-      api.installmentPlans(),
-      api.categories(),
-      api.paymentSources(),
+      api.installmentPlans(buildInstallmentParams()),
+      api.categories({ sort: "name" }),
+      api.paymentSources({ sort: "display_order" }),
     ])
 
     plans.value = plansResponse.data
@@ -73,6 +87,13 @@ async function loadPage() {
   } finally {
     loading.value = false
   }
+}
+
+function clearFilters() {
+  filters.description = ""
+  filters.from_due_date = ""
+  filters.to_due_date = ""
+  void loadPage()
 }
 
 async function submitForm() {
@@ -103,6 +124,11 @@ async function submitForm() {
   }
 }
 
+async function cancelPlan(id: number) {
+  await api.cancelInstallmentPlan(id)
+  await loadPage()
+}
+
 onMounted(() => {
   void loadPage()
 })
@@ -113,7 +139,7 @@ onMounted(() => {
     <PageHeader
       eyebrow="Parcelamentos"
       title="Parcelas flexíveis"
-      description="Monte compras parceladas com valores iguais ou manuais sem perder o controle do total e dos vencimentos."
+      description="Crie planos, filtre pelo vencimento e cancele parcelamentos usando a API já disponível."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
@@ -182,7 +208,7 @@ onMounted(() => {
           <div class="field-span-2 installment-summary-card">
             <div>
               <strong>{{ form.installments.length }} parcelas</strong>
-              <p class="muted-text">Soma informada manualmente no frontend para conferência rápida.</p>
+              <p class="muted-text">Conferência rápida da soma antes do envio para a API.</p>
             </div>
             <strong>{{ installmentsTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong>
           </div>
@@ -210,6 +236,19 @@ onMounted(() => {
           </div>
         </div>
 
+        <div class="filter-panel">
+          <div class="filter-bar">
+            <input v-model="filters.description" type="search" placeholder="Buscar descrição" />
+            <input v-model="filters.from_due_date" type="date" />
+            <input v-model="filters.to_due_date" type="date" />
+          </div>
+
+          <div class="filter-bar">
+            <button class="primary-button" type="button" @click="loadPage">Aplicar filtros</button>
+            <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
+          </div>
+        </div>
+
         <p v-if="loading" class="muted-text">Carregando parcelamentos...</p>
 
         <div v-else-if="!plans.length" class="empty-state">
@@ -230,6 +269,10 @@ onMounted(() => {
             <div class="plan-card-meta">
               <span class="badge">Primeiro vencimento: {{ plan.first_due_date }}</span>
               <span class="badge">{{ plan.transactions.length }} lançamentos vinculados</span>
+            </div>
+
+            <div class="row-button-group">
+              <button class="ghost-button" type="button" @click="cancelPlan(plan.id)">Cancelar plano</button>
             </div>
           </article>
         </div>

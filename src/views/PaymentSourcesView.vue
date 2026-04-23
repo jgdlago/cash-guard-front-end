@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from "vue"
+import { onMounted, reactive, ref } from "vue"
 
 import PageHeader from "@/components/PageHeader.vue"
 import { api } from "@/services/api"
 import type { PaymentSource, PaymentSourceType } from "@/types/api"
 
 const paymentSources = ref<PaymentSource[]>([])
+const parentCandidates = ref<PaymentSource[]>([])
 const errorMessage = ref("")
 const loading = ref(false)
 const saving = ref(false)
@@ -17,15 +18,8 @@ const filters = reactive({
 const form = reactive({
   name: "",
   type: "wallet" as PaymentSourceType,
+  parent_payment_source_id: "",
   credit_limit: "",
-})
-
-const filteredPaymentSources = computed(() => {
-  return paymentSources.value.filter((source) => {
-    const matchesType = filters.type === "all" || source.type === filters.type
-    const matchesQuery = !filters.query || source.name.toLowerCase().includes(filters.query.toLowerCase())
-    return matchesType && matchesQuery
-  })
 })
 
 function typeLabel(type: PaymentSourceType) {
@@ -45,11 +39,25 @@ function typeLabel(type: PaymentSourceType) {
   }
 }
 
+function buildPaymentSourceParams() {
+  return {
+    "filter[type]": filters.type !== "all" ? filters.type : undefined,
+    "filter[name]": filters.query || undefined,
+    sort: "display_order",
+  }
+}
+
 async function loadPaymentSources() {
   loading.value = true
 
   try {
-    paymentSources.value = await api.paymentSources()
+    const [sources, parents] = await Promise.all([
+      api.paymentSources(buildPaymentSourceParams()),
+      api.paymentSources({ "filter[type]": "bank_account", sort: "name" }),
+    ])
+
+    paymentSources.value = sources
+    parentCandidates.value = parents
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Falha ao carregar origens."
   } finally {
@@ -65,10 +73,12 @@ async function submitForm() {
     await api.createPaymentSource({
       name: form.name,
       type: form.type,
+      parent_payment_source_id: form.parent_payment_source_id ? Number(form.parent_payment_source_id) : null,
       credit_limit: form.credit_limit || null,
     })
     form.name = ""
     form.type = "wallet"
+    form.parent_payment_source_id = ""
     form.credit_limit = ""
     await loadPaymentSources()
   } catch (error) {
@@ -76,6 +86,12 @@ async function submitForm() {
   } finally {
     saving.value = false
   }
+}
+
+function clearFilters() {
+  filters.type = "all"
+  filters.query = ""
+  void loadPaymentSources()
 }
 
 onMounted(() => {
@@ -88,7 +104,7 @@ onMounted(() => {
     <PageHeader
       eyebrow="Origens"
       title="Origens de pagamento opcionais"
-      description="Use cartões, carteira ou conta pagadora apenas para enriquecer a leitura dos lançamentos, nunca como barreira de entrada."
+      description="Classifique cartões e contas pagadoras quando fizer sentido, sem burocratizar o uso principal."
     />
 
     <p v-if="errorMessage" class="error-message inline-alert">{{ errorMessage }}</p>
@@ -108,7 +124,7 @@ onMounted(() => {
             <input v-model="form.name" type="text" placeholder="Ex: Nubank" required />
           </label>
 
-          <label class="field-span-2">
+          <label>
             Tipo
             <select v-model="form.type">
               <option value="wallet">Carteira</option>
@@ -117,6 +133,16 @@ onMounted(() => {
               <option value="credit_card">Cartão de crédito</option>
               <option value="debit_card">Cartão de débito</option>
               <option value="other">Outro</option>
+            </select>
+          </label>
+
+          <label>
+            Conta pagadora
+            <select v-model="form.parent_payment_source_id">
+              <option value="">Sem vínculo</option>
+              <option v-for="candidate in parentCandidates" :key="candidate.id" :value="String(candidate.id)">
+                {{ candidate.name }}
+              </option>
             </select>
           </label>
 
@@ -137,7 +163,9 @@ onMounted(() => {
             <p class="eyebrow">Cadastro opcional</p>
             <h2>Origens existentes</h2>
           </div>
+        </div>
 
+        <div class="filter-panel">
           <div class="filter-bar">
             <select v-model="filters.type">
               <option value="all">Todos os tipos</option>
@@ -151,17 +179,22 @@ onMounted(() => {
 
             <input v-model="filters.query" type="search" placeholder="Buscar origem" />
           </div>
+
+          <div class="filter-bar">
+            <button class="primary-button" type="button" @click="loadPaymentSources">Aplicar filtros</button>
+            <button class="ghost-button" type="button" @click="clearFilters">Limpar</button>
+          </div>
         </div>
 
         <p v-if="loading" class="muted-text">Carregando origens...</p>
 
-        <div v-else-if="!filteredPaymentSources.length" class="empty-state">
+        <div v-else-if="!paymentSources.length" class="empty-state">
           <strong>Nenhuma origem encontrada.</strong>
           <p>O sistema continua funcionando normalmente sem esse cadastro.</p>
         </div>
 
         <div v-else class="stack-list source-card-list">
-          <article v-for="source in filteredPaymentSources" :key="source.id" class="source-card">
+          <article v-for="source in paymentSources" :key="source.id" class="source-card">
             <div class="source-card-top">
               <div>
                 <span class="badge">{{ typeLabel(source.type) }}</span>
@@ -171,7 +204,7 @@ onMounted(() => {
             </div>
 
             <p class="muted-text">
-              {{ source.parent_payment_source_id ? `Vinculada a origem #${source.parent_payment_source_id}` : "Sem vínculo pai" }}
+              {{ source.parent_payment_source_id ? `Vinculada à origem #${source.parent_payment_source_id}` : "Sem vínculo pai" }}
             </p>
           </article>
         </div>
