@@ -89,7 +89,7 @@ const navigation = [
             <div class="sidebar-top sidebar-top-refined">
               <RouterLink to="/dashboard" class="sidebar-brand-row sidebar-brand-link">
                 <div class="brand-mark">C</div>
-                <div v-if="!ui.sidebarCollapsed" class="brand-copy">
+                <div class="brand-copy" :class="{ 'is-hidden': ui.sidebarCollapsed }" aria-hidden="true">
                   <strong>Cash Guard</strong>
                   <span>Controle pessoal</span>
                 </div>
@@ -114,20 +114,27 @@ const navigation = [
                 :title="ui.sidebarCollapsed ? item.label : undefined"
               >
                 <span class="nav-icon"><AppIcon :name="item.icon" /></span>
-                <span v-if="!ui.sidebarCollapsed" class="nav-label">{{ item.label }}</span>
+                <span class="nav-label" :class="{ 'is-hidden': ui.sidebarCollapsed }" aria-hidden="true">{{ item.label }}</span>
               </RouterLink>
             </nav>
           </div>
 
           <div class="sidebar-footer">
-            <BaseCard v-if="auth.user && !ui.sidebarCollapsed" variant="muted" class="user-card user-card-compact" :padded="false">
+            <BaseCard
+              v-if="auth.user"
+              variant="muted"
+              class="user-card user-card-compact"
+              :class="{ 'is-collapsed': ui.sidebarCollapsed }"
+              :padded="false"
+              :aria-hidden="ui.sidebarCollapsed"
+            >
               <strong>{{ auth.user.name }}</strong>
               <p>{{ auth.user.email }}</p>
             </BaseCard>
 
             <BaseButton class="logout-button" variant="ghost" :title="ui.sidebarCollapsed ? 'Sair' : undefined" @click="handleLogout">
               <span class="nav-icon"><AppIcon name="logout" /></span>
-              <span v-if="!ui.sidebarCollapsed">Sair</span>
+              <span class="logout-label" :class="{ 'is-hidden': ui.sidebarCollapsed }" aria-hidden="true">Sair</span>
             </BaseButton>
           </div>
         </aside>
