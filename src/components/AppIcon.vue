@@ -12,6 +12,8 @@ type IconName =
   | "menu"
   | "collapse"
   | "expand"
+  | "panel-collapse"
+  | "panel-expand"
   | "logout"
 
 const props = defineProps<{
@@ -40,6 +42,10 @@ const paths = computed(() => {
       return ["M15 6l-6 6 6 6", "M5 5v14"]
     case "expand":
       return ["M9 6l6 6-6 6", "M19 5v14"]
+    case "panel-collapse":
+      return ["M4 5h16v14H4z", "M9 5v14", "M17 9l-3 3 3 3"]
+    case "panel-expand":
+      return ["M4 5h16v14H4z", "M9 5v14", "M14 9l3 3-3 3"]
     case "logout":
       return ["M9 6H5v12h4", "M13 8l4 4-4 4", "M17 12H9"]
     default:

@@ -16,27 +16,6 @@ const route = useRoute()
 const router = useRouter()
 
 const isAuthScreen = computed(() => route.name === "auth")
-const pageTitle = computed(() => {
-  switch (route.name) {
-    case "dashboard":
-      return "Dashboard"
-    case "transactions":
-      return "Lançamentos"
-    case "categories":
-      return "Categorias"
-    case "payment-sources":
-      return "Origens"
-    case "installments":
-      return "Parcelamentos"
-    case "recurring-rules":
-      return "Recorrências"
-    case "audit-logs":
-      return "Auditoria"
-    default:
-      return "Cash Guard"
-  }
-})
-
 onMounted(() => {
   void auth.hydrate()
   ui.hydrateTheme()
@@ -101,7 +80,7 @@ const navigation = [
                 :title="ui.sidebarCollapsed ? 'Expandir menu' : 'Colapsar menu'"
                 @click="ui.toggleSidebarCollapsed()"
               >
-                <AppIcon :name="ui.sidebarCollapsed ? 'expand' : 'collapse'" />
+                <AppIcon :name="ui.sidebarCollapsed ? 'panel-expand' : 'panel-collapse'" />
               </BaseButton>
             </div>
 
@@ -121,16 +100,19 @@ const navigation = [
 
           <div class="sidebar-footer">
             <BaseCard
-              v-if="auth.user"
+              v-if="auth.user && !ui.sidebarCollapsed"
               variant="muted"
               class="user-card user-card-compact"
-              :class="{ 'is-collapsed': ui.sidebarCollapsed }"
               :padded="false"
-              :aria-hidden="ui.sidebarCollapsed"
             >
               <strong>{{ auth.user.name }}</strong>
               <p>{{ auth.user.email }}</p>
             </BaseCard>
+
+            <div class="theme-control" :class="{ 'is-collapsed': ui.sidebarCollapsed }">
+              <span class="theme-control-label" :class="{ 'is-hidden': ui.sidebarCollapsed }" aria-hidden="true">Tema</span>
+              <ThemeToggle />
+            </div>
 
             <BaseButton class="logout-button" variant="ghost" :title="ui.sidebarCollapsed ? 'Sair' : undefined" @click="handleLogout">
               <span class="nav-icon"><AppIcon name="logout" /></span>
@@ -142,24 +124,6 @@ const navigation = [
         <div v-if="ui.mobileNavOpen" class="shell-backdrop" @click="ui.closeMobileNav()"></div>
 
         <div class="shell-main">
-          <header class="topbar">
-            <div class="topbar-inner content-frame">
-              <div class="topbar-heading">
-                <BaseButton class="mobile-nav-trigger" variant="ghost" @click="ui.openMobileNav()">
-                  <AppIcon name="menu" />
-                </BaseButton>
-                <div>
-                  <p class="eyebrow">Aplicação</p>
-                  <strong class="topbar-title">{{ pageTitle }}</strong>
-                </div>
-              </div>
-
-              <div class="topbar-actions">
-                <ThemeToggle />
-              </div>
-            </div>
-          </header>
-
           <main class="content-panel">
             <div class="content-frame">
               <RouterView />
