@@ -125,7 +125,7 @@ select,
 textarea {
   min-height: 44px;
   border-radius: 8px;
-  color-scheme: dark;
+  color-scheme: inherit;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.025), transparent),
     var(--bg-interactive);
@@ -2258,8 +2258,7 @@ label,
 }
 
 /* Final token override: keep Fluxo Protegido above legacy declarations. */
-[data-theme="dark"],
-[data-theme="light"] {
+[data-theme="dark"] {
   --bg-primary: #08111f;
   --bg-secondary: #0b1525;
   --bg-tertiary: #111d2e;
@@ -2289,6 +2288,36 @@ label,
   --overlay: rgba(2, 8, 18, 0.66);
 }
 
+[data-theme="light"] {
+  --bg-primary: #f6f9fc;
+  --bg-secondary: #edf4f8;
+  --bg-tertiary: #e3edf5;
+  --bg-card: #ffffff;
+  --bg-card-muted: #f4f8fb;
+  --bg-card-subtle: #eaf2f7;
+  --bg-interactive: #f8fbfd;
+  --bg-interactive-hover: #edf4f8;
+  --bg-sidebar: #ffffff;
+  --bg-sidebar-active: rgba(13, 143, 104, 0.1);
+  --text-primary: #0b1726;
+  --text-secondary: #39506a;
+  --text-muted: #60748c;
+  --text-on-accent: #ffffff;
+  --text-sidebar: #102033;
+  --text-sidebar-muted: #60748c;
+  --border: #c9d8e6;
+  --border-strong: #9fb4ca;
+  --focus-ring: rgba(13, 143, 104, 0.18);
+  --accent: #0d8f68;
+  --accent-hover: #087351;
+  --success: #0d8f68;
+  --danger: #d64550;
+  --warning: #b7791f;
+  --flow: #2477c7;
+  --recurring: #7657d8;
+  --overlay: rgba(8, 17, 31, 0.28);
+}
+
 body {
   font-family: "Inter", "Segoe UI", sans-serif;
   font-feature-settings: "tnum";
@@ -2300,6 +2329,137 @@ body {
     radial-gradient(circle at 86% 18%, rgba(169, 139, 255, 0.1), transparent 24%),
     linear-gradient(145deg, #08111f 0%, #0b1525 56%, #111d2e 100%);
   background-size: 54px 54px, 54px 54px, auto, auto, auto;
+}
+
+[data-theme="light"] body {
+  background:
+    linear-gradient(90deg, rgba(36, 119, 199, 0.05) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(13, 143, 104, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 18% 4%, rgba(13, 143, 104, 0.12), transparent 28%),
+    radial-gradient(circle at 86% 18%, rgba(118, 87, 216, 0.1), transparent 24%),
+    linear-gradient(145deg, #f6f9fc 0%, #edf4f8 58%, #e3edf5 100%);
+  background-size: 54px 54px, 54px 54px, auto, auto, auto;
+}
+
+[data-theme="light"] body::before {
+  background:
+    linear-gradient(120deg, transparent 0 42%, rgba(13, 143, 104, 0.08) 42% 43%, transparent 43% 100%),
+    linear-gradient(150deg, transparent 0 62%, rgba(36, 119, 199, 0.07) 62% 63%, transparent 63% 100%);
+}
+
+[data-theme="light"] .sidebar {
+  background:
+    linear-gradient(180deg, rgba(13, 143, 104, 0.08), transparent 28%),
+    #ffffff;
+  border-right-color: #c9d8e6;
+}
+
+[data-theme="light"] .base-card,
+[data-theme="light"] .hero-card,
+[data-theme="light"] .section-card,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .row-card,
+[data-theme="light"] .hero-banner,
+[data-theme="light"] .quick-action-card,
+[data-theme="light"] .source-card,
+[data-theme="light"] .plan-card,
+[data-theme="light"] .mini-feature-card,
+[data-theme="light"] .installment-summary-card,
+[data-theme="light"] .audit-log-card,
+[data-theme="light"] .auth-metric-card {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.4) 42%, transparent),
+    var(--bg-card);
+  box-shadow: 0 10px 28px rgba(16, 32, 51, 0.08), inset 0 1px 0 rgba(255,255,255,0.72);
+}
+
+[data-theme="light"] .flow-card {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(13,143,104,0.11), transparent 34%),
+    linear-gradient(135deg, rgba(36,119,199,0.09), transparent 48%),
+    var(--bg-card);
+}
+
+[data-theme="light"] .auth-preview-list article,
+[data-theme="light"] .ghost-button,
+[data-theme="light"] .base-button.is-ghost,
+[data-theme="light"] .theme-control,
+[data-theme="light"] .user-card {
+  background: rgba(244, 248, 251, 0.86);
+}
+
+/* Sidebar polish after the identity overrides. */
+.sidebar-footer,
+.user-card,
+.user-card-copy {
+  min-width: 0;
+}
+
+.sidebar-footer {
+  overflow: hidden;
+}
+
+.user-card {
+  width: 100%;
+  overflow: hidden;
+}
+
+.user-card-copy {
+  overflow: hidden;
+}
+
+.user-card-copy strong,
+.user-card-copy p,
+.user-card-copy small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-card-copy.is-hidden {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .user-card {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 999px;
+  border-color: transparent;
+  background: transparent;
+}
+
+.app-shell.sidebar-collapsed .user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+}
+
+.collapse-toggle.base-button.is-ghost {
+  color: var(--text-sidebar);
+  background: color-mix(in srgb, var(--bg-interactive) 82%, transparent);
+  border-color: color-mix(in srgb, var(--border) 86%, transparent);
+}
+
+.app-shell.sidebar-collapsed .collapse-toggle.base-button.is-ghost {
+  color: #04140f;
+  background: linear-gradient(145deg, #20d391, #0d8f68);
+  border-color: color-mix(in srgb, var(--accent) 70%, var(--border));
+  box-shadow: 0 12px 24px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+[data-theme="light"] .collapse-toggle.base-button.is-ghost {
+  color: #102033;
+  background: #eef7f3;
+  border-color: #b7d9cc;
+}
+
+[data-theme="light"] .app-shell.sidebar-collapsed .collapse-toggle.base-button.is-ghost {
+  color: #ffffff;
+  background: linear-gradient(145deg, #0d8f68, #087351);
+  border-color: #0d8f68;
 }
 
 .sidebar-brand-link {
