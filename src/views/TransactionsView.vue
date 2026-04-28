@@ -6,9 +6,11 @@ import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
 import PaginationNav from "@/components/PaginationNav.vue"
+import { usePrecognition } from "@/composables/usePrecognition"
 import { api } from "@/services/api"
 import { useUiStore } from "@/stores/ui"
 import type { Category, PaymentSource, PaginationMeta, Transaction, TransactionStatus, TransactionType } from "@/types/api"
+import { allowDecimalBeforeInput, sanitizeDecimalInputEvent, sanitizeFreeText, sanitizeSearchText } from "@/utils/inputSanitizers"
 import { formatMoneyFromCents } from "@/utils/money"
 
 const ui = useUiStore()
@@ -51,6 +53,20 @@ const activeFilterLabels = computed(() => {
   if (filters.to) labels.push(`Até ${filters.to}`)
   return labels
 })
+const validation = usePrecognition(() => ({
+  method: isEditing.value ? "PATCH" : "POST",
+  path: isEditing.value ? `/transactions/${editingTransactionId.value}` : "/transactions",
+  payload: {
+    type: form.type,
+    status: form.status,
+    category_id: form.category_id ? Number(form.category_id) : null,
+    payment_source_id: form.payment_source_id ? Number(form.payment_source_id) : null,
+    amount: form.amount,
+    transaction_date: form.transaction_date,
+    description: form.description,
+    notes: form.notes || null,
+  },
+}))
 
 function buildTransactionParams() {
   return {
@@ -130,6 +146,18 @@ function changePage(page: number) {
   void loadPage()
 }
 
+function sanitizeAmount(event: Event) {
+  form.amount = sanitizeDecimalInputEvent(event)
+}
+
+function sanitizeDescription() {
+  form.description = sanitizeFreeText(form.description, 255)
+}
+
+function sanitizeNotes() {
+  form.notes = sanitizeFreeText(form.notes, 2000)
+}
+
 async function submitForm() {
   saving.value = true
   errorMessage.value = ""
@@ -157,6 +185,11 @@ async function submitForm() {
     resetForm()
     await loadPage()
   } catch (error) {
+    if (validation.capture(error)) {
+      errorMessage.value = "Revise os campos destacados."
+      return
+    }
+
     errorMessage.value = error instanceof Error ? error.message : "Falha ao salvar o lançamento."
   } finally {
     saving.value = false
@@ -206,61 +239,93 @@ onMounted(() => {
           </div>
 
           <div class="field-span-2 segmented-control type-segment">
-            <button type="button" :class="['tone-expense', { active: form.type === 'expense' }]" @click="form.type = 'expense'">
+            <button type="button" :class="['tone-expense', { active: form.type === 'expense' }]" @click="form.type = 'expense'; validation.validate('type')">
               <AppIcon name="expense" /> Despesa
             </button>
-            <button type="button" :class="['tone-income', { active: form.type === 'income' }]" @click="form.type = 'income'">
+            <button type="button" :class="['tone-income', { active: form.type === 'income' }]" @click="form.type = 'income'; validation.validate('type')">
               <AppIcon name="income" /> Receita
             </button>
           </div>
 
           <label>
             Status
-            <select v-model="form.status">
+            <select v-model="form.status" @change="validation.validate('status')">
               <option value="posted">Lançado</option>
               <option value="pending">Pendente</option>
               <option value="draft">Rascunho</option>
             </select>
+            <p v-if="validation.errors.status" class="field-error">{{ validation.errors.status }}</p>
           </label>
 
           <label>
             Valor
-            <input v-model="form.amount" type="text" inputmode="decimal" placeholder="0,00" required />
+            <input
+              v-model="form.amount"
+              type="text"
+              inputmode="decimal"
+              pattern="\\d+([,.]\\d{1,2})?"
+              placeholder="0,00"
+              required
+              @beforeinput="allowDecimalBeforeInput"
+              @input="sanitizeAmount"
+              @change="validation.validate('amount')"
+            />
+            <p v-if="validation.errors.amount" class="field-error">{{ validation.errors.amount }}</p>
           </label>
 
           <label>
             Data
-            <input v-model="form.transaction_date" type="date" required />
+            <input v-model="form.transaction_date" type="date" required @change="validation.validate('transaction_date')" />
+            <p v-if="validation.errors.transaction_date" class="field-error">{{ validation.errors.transaction_date }}</p>
           </label>
 
           <label>
             Categoria
-            <select v-model="form.category_id">
+            <select v-model="form.category_id" @change="validation.validate('category_id')">
               <option value="">Sem categoria</option>
               <option v-for="category in categories" :key="category.id" :value="String(category.id)">
                 {{ category.name }}
               </option>
             </select>
+            <p v-if="validation.errors.category_id" class="field-error">{{ validation.errors.category_id }}</p>
           </label>
 
           <label>
             Origem
-            <select v-model="form.payment_source_id">
+            <select v-model="form.payment_source_id" @change="validation.validate('payment_source_id')">
               <option value="">Sem origem</option>
               <option v-for="source in paymentSources" :key="source.id" :value="String(source.id)">
                 {{ source.name }}
               </option>
             </select>
+            <p v-if="validation.errors.payment_source_id" class="field-error">{{ validation.errors.payment_source_id }}</p>
           </label>
 
           <label class="field-span-2">
             Descrição
-            <input v-model="form.description" type="text" placeholder="Ex: supermercado" required />
+            <input
+              v-model="form.description"
+              type="text"
+              placeholder="Ex: supermercado"
+              required
+              maxlength="255"
+              @input="sanitizeDescription"
+              @change="validation.validate('description')"
+            />
+            <p v-if="validation.errors.description" class="field-error">{{ validation.errors.description }}</p>
           </label>
 
           <label class="field-span-2">
             Observações
-            <textarea v-model="form.notes" rows="3" placeholder="Opcional"></textarea>
+            <textarea
+              v-model="form.notes"
+              rows="3"
+              maxlength="2000"
+              placeholder="Opcional"
+              @input="sanitizeNotes"
+              @change="validation.validate('notes')"
+            ></textarea>
+            <p v-if="validation.errors.notes" class="field-error">{{ validation.errors.notes }}</p>
           </label>
 
           <button class="primary-button field-span-2" :disabled="saving">
@@ -299,7 +364,7 @@ onMounted(() => {
               <option value="cancelled">Cancelado</option>
             </select>
 
-            <input v-model="filters.description" type="search" placeholder="Buscar descrição" />
+            <input v-model="filters.description" type="search" maxlength="120" placeholder="Buscar descrição" @input="filters.description = sanitizeSearchText(filters.description)" />
             <input v-model="filters.from" type="date" />
             <input v-model="filters.to" type="date" />
           </div>

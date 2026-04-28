@@ -6,8 +6,10 @@ import AppIcon from "@/components/AppIcon.vue"
 import BaseButton from "@/components/base/BaseButton.vue"
 import BaseCard from "@/components/base/BaseCard.vue"
 import BaseField from "@/components/base/BaseField.vue"
+import { usePrecognition } from "@/composables/usePrecognition"
 import { useAuthStore } from "@/stores/auth"
 import { useUiStore } from "@/stores/ui"
+import { sanitizeFreeText } from "@/utils/inputSanitizers"
 
 const auth = useAuthStore()
 const ui = useUiStore()
@@ -35,6 +37,21 @@ const modeDescription = computed(() =>
     ? "Entre para acompanhar seu mês com uma interface direta e sem excesso de cadastro."
     : "Crie sua conta e comece registrando entradas e saídas sem precisar montar uma estrutura bancária complexa.",
 )
+const loginValidation = usePrecognition(() => ({
+  method: "POST",
+  path: "/auth/login",
+  payload: loginForm,
+}))
+const registerValidation = usePrecognition(() => ({
+  method: "POST",
+  path: "/auth/register",
+  payload: registerForm,
+}))
+const activeValidation = computed(() => (mode.value === "login" ? loginValidation : registerValidation))
+
+function sanitizeRegisterName() {
+  registerForm.name = sanitizeFreeText(registerForm.name, 255)
+}
 
 async function handleSubmit() {
   errorMessage.value = ""
@@ -50,6 +67,11 @@ async function handleSubmit() {
 
     await router.push({ name: "dashboard" })
   } catch (error) {
+    if (activeValidation.value.capture(error)) {
+      errorMessage.value = "Revise os campos destacados."
+      return
+    }
+
     errorMessage.value = error instanceof Error ? error.message : "Falha ao autenticar."
   }
 }
@@ -130,29 +152,71 @@ async function handleSubmit() {
         <form class="form-grid form-grid-auth" @submit.prevent="handleSubmit">
           <template v-if="mode === 'login'">
             <BaseField label="E-mail" class="field-span-2">
-              <input v-model="loginForm.email" type="email" autocomplete="email" required />
+              <input v-model="loginForm.email" type="email" autocomplete="email" required @change="loginValidation.validate('email')" />
+              <p v-if="loginValidation.errors.email" class="field-error">{{ loginValidation.errors.email }}</p>
             </BaseField>
 
             <BaseField label="Senha" class="field-span-2">
-              <input v-model="loginForm.password" type="password" autocomplete="current-password" required />
+              <input
+                v-model="loginForm.password"
+                type="password"
+                autocomplete="current-password"
+                required
+                @change="loginValidation.validate('password')"
+              />
+              <p v-if="loginValidation.errors.password" class="field-error">{{ loginValidation.errors.password }}</p>
             </BaseField>
           </template>
 
           <template v-else>
             <BaseField label="Nome" class="field-span-2">
-              <input v-model="registerForm.name" type="text" placeholder="Seu nome" autocomplete="name" required />
+              <input
+                v-model="registerForm.name"
+                type="text"
+                placeholder="Seu nome"
+                autocomplete="name"
+                required
+                maxlength="255"
+                @input="sanitizeRegisterName"
+                @change="registerValidation.validate('name')"
+              />
+              <p v-if="registerValidation.errors.name" class="field-error">{{ registerValidation.errors.name }}</p>
             </BaseField>
 
             <BaseField label="E-mail" class="field-span-2">
-              <input v-model="registerForm.email" type="email" autocomplete="email" required />
+              <input
+                v-model="registerForm.email"
+                type="email"
+                autocomplete="email"
+                required
+                maxlength="255"
+                @change="registerValidation.validate('email')"
+              />
+              <p v-if="registerValidation.errors.email" class="field-error">{{ registerValidation.errors.email }}</p>
             </BaseField>
 
             <BaseField label="Senha">
-              <input v-model="registerForm.password" type="password" autocomplete="new-password" required />
+              <input
+                v-model="registerForm.password"
+                type="password"
+                autocomplete="new-password"
+                required
+                @change="registerValidation.validate('password', ['password', 'password_confirmation'])"
+              />
+              <p v-if="registerValidation.errors.password" class="field-error">{{ registerValidation.errors.password }}</p>
             </BaseField>
 
             <BaseField label="Confirmar senha">
-              <input v-model="registerForm.password_confirmation" type="password" autocomplete="new-password" required />
+              <input
+                v-model="registerForm.password_confirmation"
+                type="password"
+                autocomplete="new-password"
+                required
+                @change="registerValidation.validate('password_confirmation', ['password', 'password_confirmation'])"
+              />
+              <p v-if="registerValidation.errors.password_confirmation" class="field-error">
+                {{ registerValidation.errors.password_confirmation }}
+              </p>
             </BaseField>
           </template>
 

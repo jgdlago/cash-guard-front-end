@@ -5,9 +5,11 @@ import AppIcon from "@/components/AppIcon.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
+import { usePrecognition } from "@/composables/usePrecognition"
 import { api } from "@/services/api"
 import { useUiStore } from "@/stores/ui"
 import type { Category, CategoryDirection } from "@/types/api"
+import { sanitizeFreeText, sanitizeSearchText } from "@/utils/inputSanitizers"
 
 const ui = useUiStore()
 const categories = ref<Category[]>([])
@@ -25,6 +27,11 @@ const form = reactive({
   name: "",
   direction: "expense" as CategoryDirection,
 })
+const validation = usePrecognition(() => ({
+  method: "POST",
+  path: "/categories",
+  payload: form,
+}))
 
 function buildCategoryParams() {
   return {
@@ -59,6 +66,11 @@ async function submitForm() {
     ui.pushToast("Categoria criada.", "success")
     await loadCategories()
   } catch (error) {
+    if (validation.capture(error)) {
+      errorMessage.value = "Revise os campos destacados."
+      return
+    }
+
     errorMessage.value = error instanceof Error ? error.message : "Falha ao criar categoria."
   } finally {
     saving.value = false
@@ -120,6 +132,10 @@ function clearFilters() {
   void loadCategories()
 }
 
+function sanitizeName() {
+  form.name = sanitizeFreeText(form.name, 120)
+}
+
 onMounted(() => {
   void loadCategories()
 })
@@ -147,16 +163,26 @@ onMounted(() => {
         <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
           <label class="field-span-2">
             Nome
-            <input v-model="form.name" type="text" placeholder="Ex: Pets" required />
+            <input
+              v-model="form.name"
+              type="text"
+              placeholder="Ex: Pets"
+              required
+              maxlength="120"
+              @input="sanitizeName"
+              @change="validation.validate('name')"
+            />
+            <p v-if="validation.errors.name" class="field-error">{{ validation.errors.name }}</p>
           </label>
 
           <label class="field-span-2">
             Direção
-            <select v-model="form.direction">
+            <select v-model="form.direction" @change="validation.validate('direction')">
               <option value="expense">Despesa</option>
               <option value="income">Receita</option>
               <option value="both">Ambas</option>
             </select>
+            <p v-if="validation.errors.direction" class="field-error">{{ validation.errors.direction }}</p>
           </label>
 
           <button class="primary-button field-span-2" :disabled="saving">
@@ -188,7 +214,7 @@ onMounted(() => {
               <option value="both">Ambas</option>
             </select>
 
-            <input v-model="filters.query" type="search" placeholder="Buscar categoria" />
+            <input v-model="filters.query" type="search" maxlength="120" placeholder="Buscar categoria" @input="filters.query = sanitizeSearchText(filters.query)" />
           </div>
 
           <div class="filter-bar filter-bar-actions">

@@ -14,6 +14,18 @@ import type {
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost/api/v1"
 const TOKEN_KEY = "cash-guard.token"
 
+export type ValidationErrors = Record<string, string[]>
+
+export class ApiValidationError extends Error {
+  errors: ValidationErrors
+
+  constructor(message: string, errors: ValidationErrors = {}) {
+    super(message)
+    this.name = "ApiValidationError"
+    this.errors = errors
+  }
+}
+
 function buildHeaders(init?: HeadersInit): Headers {
   const headers = new Headers(init)
   headers.set("Accept", "application/json")
@@ -60,13 +72,45 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T
   }
 
-  const payload = (await response.json()) as { data?: T; message?: string }
+  const payload = (await response.json()) as { data?: T; errors?: ValidationErrors; message?: string }
 
   if (!response.ok) {
+    if (response.status === 422 && payload.errors) {
+      throw new ApiValidationError(payload.message ?? "Os campos enviados precisam de revisão.", payload.errors)
+    }
+
     throw new Error(payload.message ?? "Falha na comunicação com a API.")
   }
 
   return (payload.data ?? payload) as T
+}
+
+export async function precognize(
+  method: "POST" | "PUT" | "PATCH",
+  path: string,
+  payload: Record<string, unknown>,
+  fields: string[],
+): Promise<ValidationErrors> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers: buildHeaders({
+      Precognition: "true",
+      "Precognition-Validate-Only": fields.join(","),
+    }),
+    body: JSON.stringify(payload),
+  })
+
+  if (response.ok) {
+    return {}
+  }
+
+  const responsePayload = (await response.json()) as { errors?: ValidationErrors; message?: string }
+
+  if (response.status === 422) {
+    return responsePayload.errors ?? {}
+  }
+
+  throw new Error(responsePayload.message ?? "Falha ao validar os campos.")
 }
 
 export const tokenStorage = {

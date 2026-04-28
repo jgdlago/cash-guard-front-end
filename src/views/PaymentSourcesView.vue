@@ -5,9 +5,11 @@ import AppIcon from "@/components/AppIcon.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
+import { usePrecognition } from "@/composables/usePrecognition"
 import { api } from "@/services/api"
 import { useUiStore } from "@/stores/ui"
 import type { PaymentSource, PaymentSourceType } from "@/types/api"
+import { allowDecimalBeforeInput, sanitizeDecimalInputEvent, sanitizeFreeText, sanitizeSearchText } from "@/utils/inputSanitizers"
 
 const ui = useUiStore()
 const paymentSources = ref<PaymentSource[]>([])
@@ -26,6 +28,16 @@ const form = reactive({
   parent_payment_source_id: "",
   credit_limit: "",
 })
+const validation = usePrecognition(() => ({
+  method: "POST",
+  path: "/payment-sources",
+  payload: {
+    name: form.name,
+    type: form.type,
+    parent_payment_source_id: form.parent_payment_source_id ? Number(form.parent_payment_source_id) : null,
+    credit_limit: form.credit_limit || null,
+  },
+}))
 
 function typeLabel(type: PaymentSourceType) {
   switch (type) {
@@ -97,6 +109,11 @@ async function submitForm() {
     ui.pushToast("Origem criada.", "success")
     await loadPaymentSources()
   } catch (error) {
+    if (validation.capture(error)) {
+      errorMessage.value = "Revise os campos destacados."
+      return
+    }
+
     errorMessage.value = error instanceof Error ? error.message : "Falha ao salvar origem."
   } finally {
     saving.value = false
@@ -107,6 +124,14 @@ function clearFilters() {
   filters.type = "all"
   filters.query = ""
   void loadPaymentSources()
+}
+
+function sanitizeName() {
+  form.name = sanitizeFreeText(form.name, 120)
+}
+
+function sanitizeCreditLimit(event: Event) {
+  form.credit_limit = sanitizeDecimalInputEvent(event)
 }
 
 onMounted(() => {
@@ -136,12 +161,21 @@ onMounted(() => {
         <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
           <label class="field-span-2">
             Nome
-            <input v-model="form.name" type="text" placeholder="Ex: Nubank" required />
+            <input
+              v-model="form.name"
+              type="text"
+              placeholder="Ex: Nubank"
+              required
+              maxlength="120"
+              @input="sanitizeName"
+              @change="validation.validate('name')"
+            />
+            <p v-if="validation.errors.name" class="field-error">{{ validation.errors.name }}</p>
           </label>
 
           <label>
             Tipo
-            <select v-model="form.type">
+            <select v-model="form.type" @change="validation.validate('type')">
               <option value="wallet">Carteira</option>
               <option value="cash">Dinheiro</option>
               <option value="bank_account">Conta bancária</option>
@@ -149,21 +183,33 @@ onMounted(() => {
               <option value="debit_card">Cartão de débito</option>
               <option value="other">Outro</option>
             </select>
+            <p v-if="validation.errors.type" class="field-error">{{ validation.errors.type }}</p>
           </label>
 
           <label>
             Conta pagadora
-            <select v-model="form.parent_payment_source_id">
+            <select v-model="form.parent_payment_source_id" @change="validation.validate('parent_payment_source_id')">
               <option value="">Sem vínculo</option>
               <option v-for="candidate in parentCandidates" :key="candidate.id" :value="String(candidate.id)">
                 {{ candidate.name }}
               </option>
             </select>
+            <p v-if="validation.errors.parent_payment_source_id" class="field-error">{{ validation.errors.parent_payment_source_id }}</p>
           </label>
 
           <label class="field-span-2">
             Limite de crédito
-            <input v-model="form.credit_limit" type="text" inputmode="decimal" placeholder="0,00" />
+            <input
+              v-model="form.credit_limit"
+              type="text"
+              inputmode="decimal"
+              pattern="\\d+([,.]\\d{1,2})?"
+              placeholder="0,00"
+              @beforeinput="allowDecimalBeforeInput"
+              @input="sanitizeCreditLimit"
+              @change="validation.validate('credit_limit')"
+            />
+            <p v-if="validation.errors.credit_limit" class="field-error">{{ validation.errors.credit_limit }}</p>
           </label>
 
           <button class="primary-button field-span-2" :disabled="saving">
@@ -192,7 +238,7 @@ onMounted(() => {
               <option value="other">Outro</option>
             </select>
 
-            <input v-model="filters.query" type="search" placeholder="Buscar origem" />
+            <input v-model="filters.query" type="search" maxlength="120" placeholder="Buscar origem" @input="filters.query = sanitizeSearchText(filters.query)" />
           </div>
 
           <div class="filter-bar filter-bar-actions">
