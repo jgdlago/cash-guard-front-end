@@ -2,6 +2,7 @@
 import { computed, reactive, ref } from "vue"
 import { useRouter } from "vue-router"
 
+import AppIcon from "@/components/AppIcon.vue"
 import BaseButton from "@/components/base/BaseButton.vue"
 import BaseCard from "@/components/base/BaseCard.vue"
 import BaseField from "@/components/base/BaseField.vue"
@@ -59,45 +60,51 @@ async function handleSubmit() {
     <div class="auth-editorial-panel auth-editorial-panel-refined">
       <div class="auth-editorial-copy">
         <p class="eyebrow">Cash Guard</p>
-        <h1>Finanças pessoais com clareza, ritmo e menos ruído.</h1>
+        <h1>Seu mês financeiro, em ordem.</h1>
         <p class="auth-lead">
           Organize entradas, saídas, parcelas e recorrências em uma experiência feita para uso diário, com foco em leitura rápida e ação simples.
         </p>
       </div>
 
-      <div class="auth-metric-strip auth-metric-strip-refined">
-        <BaseCard variant="muted" class="auth-metric-card" :padded="true">
-          <span>Fluxo central</span>
-          <strong>Entradas e saídas</strong>
-        </BaseCard>
-        <BaseCard variant="muted" class="auth-metric-card" :padded="true">
-          <span>Parcelamento</span>
-          <strong>Valores variáveis</strong>
-        </BaseCard>
-        <BaseCard variant="muted" class="auth-metric-card" :padded="true">
-          <span>Estrutura</span>
-          <strong>Sem contas obrigatórias</strong>
-        </BaseCard>
-      </div>
-
-      <BaseCard variant="subtle" class="auth-value-panel">
-        <div class="auth-value-list">
-          <article class="auth-value-item">
-            <strong>Resumo mensal direto</strong>
-            <p>Saldo, receitas, despesas e categorias principais com leitura objetiva.</p>
-          </article>
-
-          <article class="auth-value-item">
-            <strong>Extrato operacional</strong>
-            <p>Cadastro rápido, filtros úteis e edição sem fricção desnecessária.</p>
-          </article>
-
-          <article class="auth-value-item">
-            <strong>Origens opcionais</strong>
-            <p>Cartões e conta pagadora entram como detalhe operacional, não como burocracia inicial.</p>
-          </article>
+      <BaseCard variant="subtle" class="auth-preview-card flow-card">
+        <div class="auth-preview-top">
+          <div>
+            <span>Saldo de abril</span>
+            <strong>R$ 2.480,00</strong>
+          </div>
+          <span class="badge tone-income">positivo</span>
+        </div>
+        <div class="auth-preview-flow">
+          <span class="tone-income">Entradas</span>
+          <i></i>
+          <span class="tone-expense">Saídas</span>
+          <i></i>
+          <span class="tone-recurring">Recorrências</span>
+        </div>
+        <div class="auth-preview-list">
+          <article><AppIcon name="income" /><div><strong>Receita recebida</strong><p>Hoje, 09:20</p></div><b>+R$ 4.800</b></article>
+          <article><AppIcon name="expense" /><div><strong>Mercado</strong><p>Alimentação</p></div><b>-R$ 286</b></article>
+          <article><AppIcon name="recurring" /><div><strong>Assinatura</strong><p>Próxima execução</p></div><b>12/05</b></article>
         </div>
       </BaseCard>
+
+      <div class="auth-metric-strip auth-metric-strip-refined">
+        <BaseCard variant="muted" class="auth-metric-card tone-flow" :padded="true">
+          <AppIcon name="flow" />
+          <span>Fluxo</span>
+          <strong>Entradas e saídas</strong>
+        </BaseCard>
+        <BaseCard variant="muted" class="auth-metric-card tone-warning" :padded="true">
+          <AppIcon name="calendar" />
+          <span>Parcelas</span>
+          <strong>Vencimentos claros</strong>
+        </BaseCard>
+        <BaseCard variant="muted" class="auth-metric-card tone-recurring" :padded="true">
+          <AppIcon name="recurring" />
+          <span>Rotina</span>
+          <strong>Regras recorrentes</strong>
+        </BaseCard>
+      </div>
     </div>
 
     <div class="auth-form-shell">

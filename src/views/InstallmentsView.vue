@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue"
 
+import AppIcon from "@/components/AppIcon.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
@@ -45,6 +46,8 @@ const installmentsTotal = computed(() => {
     return total + (Number.isFinite(parsed) ? parsed : 0)
   }, 0)
 })
+
+const installmentSegments = computed(() => Array.from({ length: Math.min(form.installments.length, 12) }, (_, index) => index + 1))
 
 function createInstallments(count: number, amount = "") {
   form.installments = Array.from({ length: count }, (_, index) => ({
@@ -227,12 +230,15 @@ onMounted(() => {
             </button>
           </template>
 
-          <div class="field-span-2 installment-summary-card installment-summary-card-compact surface-subtle-panel">
+          <div class="field-span-2 installment-summary-card installment-summary-card-compact surface-subtle-panel tone-warning">
             <div>
               <strong>{{ form.installments.length }} parcelas</strong>
               <p class="muted-text">Conferência rápida antes do envio.</p>
             </div>
             <strong>{{ installmentsTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</strong>
+            <div class="installment-rail" aria-hidden="true">
+              <span v-for="segment in installmentSegments" :key="segment"></span>
+            </div>
           </div>
 
           <div class="field-span-2 installment-grid installment-grid-enhanced">
@@ -282,11 +288,13 @@ onMounted(() => {
             v-if="!plans.length"
             title="Nenhum parcelamento cadastrado."
             description="Ao criar um plano, as parcelas passam a compor o histórico financeiro do sistema."
+            icon="calendar"
+            tone="warning"
           />
 
           <template v-else>
             <div class="stack-list stack-list-tight plan-card-list">
-              <article v-for="plan in plans" :key="plan.id" class="plan-card plan-card-compact refined-plan-card">
+              <article v-for="plan in plans" :key="plan.id" class="plan-card plan-card-compact refined-plan-card installment-plan-card tone-warning">
                 <div class="plan-card-top">
                   <div>
                     <strong>{{ plan.description }}</strong>
@@ -295,8 +303,16 @@ onMounted(() => {
                   <strong>{{ plan.total_amount }}</strong>
                 </div>
 
+                <div class="installment-progress">
+                  <span
+                    v-for="number in plan.total_installments"
+                    :key="number"
+                    :class="{ filled: number <= plan.transactions.length }"
+                  ></span>
+                </div>
+
                 <div class="plan-card-meta">
-                  <span class="badge">Primeiro vencimento: {{ plan.first_due_date }}</span>
+                  <span class="badge tone-warning"><AppIcon name="calendar" /> Primeiro vencimento: {{ plan.first_due_date }}</span>
                   <span class="badge">{{ plan.transactions.length }} lançamentos</span>
                 </div>
 

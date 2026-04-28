@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue"
 
+import AppIcon from "@/components/AppIcon.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
@@ -101,11 +102,14 @@ onMounted(() => {
           v-if="!logs.length"
           title="Nenhum evento de auditoria encontrado."
           description="Os registros aparecerão aqui conforme operações financeiras forem realizadas."
+          icon="filter"
+          tone="flow"
         />
 
         <template v-else>
           <div class="stack-list stack-list-tight audit-log-list">
-            <article v-for="log in logs" :key="log.id" class="audit-log-card refined-audit-card">
+            <article v-for="log in logs" :key="log.id" class="audit-log-card refined-audit-card timeline-card audit-event-card">
+              <span class="audit-event-icon"><AppIcon name="check" /></span>
               <div class="plan-card-top">
                 <div>
                   <div class="inline-meta-row inline-meta-row-wrap">

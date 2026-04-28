@@ -24,7 +24,11 @@ function getInitialTheme(): ThemeMode {
     return stored
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+  if (typeof window.matchMedia !== "function") {
+    return "dark"
+  }
+
+  return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"
 }
 
 function getInitialSidebarState(): boolean {

@@ -6,7 +6,6 @@ import AppIcon from "@/components/AppIcon.vue"
 import ThemeToggle from "@/components/ThemeToggle.vue"
 import ToastStack from "@/components/ToastStack.vue"
 import BaseButton from "@/components/base/BaseButton.vue"
-import BaseCard from "@/components/base/BaseCard.vue"
 import { useAuthStore } from "@/stores/auth"
 import { useUiStore } from "@/stores/ui"
 
@@ -43,6 +42,19 @@ const navigation = [
   { to: "/payment-sources", label: "Origens", shortLabel: "Origens", icon: "sources" },
   { to: "/audit-logs", label: "Auditoria", shortLabel: "Auditoria", icon: "audit" },
 ] as const
+
+const userInitials = computed(() => {
+  const name = auth.user?.name?.trim()
+  if (!name) {
+    return "CG"
+  }
+
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("")
+})
 </script>
 
 <template>
@@ -67,10 +79,12 @@ const navigation = [
           <div class="sidebar-scroll">
             <div class="sidebar-top sidebar-top-refined">
               <RouterLink to="/dashboard" class="sidebar-brand-row sidebar-brand-link">
-                <div class="brand-mark">C</div>
+                <div class="brand-mark">
+                  <AppIcon name="spark" />
+                </div>
                 <div class="brand-copy" :class="{ 'is-hidden': ui.sidebarCollapsed }" aria-hidden="true">
                   <strong>Cash Guard</strong>
-                  <span>Controle pessoal</span>
+                  <span>Fluxo Protegido</span>
                 </div>
               </RouterLink>
 
@@ -99,15 +113,14 @@ const navigation = [
           </div>
 
           <div class="sidebar-footer">
-            <BaseCard
-              v-if="auth.user && !ui.sidebarCollapsed"
-              variant="muted"
-              class="user-card user-card-compact"
-              :padded="false"
-            >
-              <strong>{{ auth.user.name }}</strong>
-              <p>{{ auth.user.email }}</p>
-            </BaseCard>
+            <div v-if="auth.user" class="user-card user-card-compact" :class="{ 'is-collapsed': ui.sidebarCollapsed }">
+              <span class="user-avatar">{{ userInitials }}</span>
+              <div class="user-card-copy" :class="{ 'is-hidden': ui.sidebarCollapsed }" aria-hidden="true">
+                <strong>{{ auth.user.name }}</strong>
+                <p>{{ auth.user.email }}</p>
+                <small>Mês em acompanhamento</small>
+              </div>
+            </div>
 
             <div class="theme-control" :class="{ 'is-collapsed': ui.sidebarCollapsed }">
               <span class="theme-control-label" :class="{ 'is-hidden': ui.sidebarCollapsed }" aria-hidden="true">Tema</span>
@@ -124,6 +137,17 @@ const navigation = [
         <div v-if="ui.mobileNavOpen" class="shell-backdrop" @click="ui.closeMobileNav()"></div>
 
         <div class="shell-main">
+          <header class="mobile-topbar">
+            <BaseButton class="app-icon-control" variant="ghost" title="Abrir menu" @click="ui.openMobileNav()">
+              <AppIcon name="menu" />
+            </BaseButton>
+            <div>
+              <strong>Cash Guard</strong>
+              <span>Fluxo Protegido</span>
+            </div>
+            <ThemeToggle />
+          </header>
+
           <main class="content-panel">
             <div class="content-frame">
               <RouterView />

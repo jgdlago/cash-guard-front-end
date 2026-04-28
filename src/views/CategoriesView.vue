@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue"
 
+import AppIcon from "@/components/AppIcon.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
@@ -203,14 +204,19 @@ onMounted(() => {
             v-if="!categories.length"
             title="Nenhuma categoria encontrada."
             description="Ajuste os filtros ou crie uma categoria personalizada."
+            icon="tag"
+            tone="flow"
           />
 
           <div v-else class="stack-list stack-list-tight">
             <article
               v-for="category in categories"
               :key="category.id"
-              class="row-card row-card-compact row-card-detail category-row-card refined-list-row"
+              :class="['category-token-row', `tone-${category.direction === 'income' ? 'income' : category.direction === 'expense' ? 'expense' : 'flow'}`, { 'is-muted': category.is_hidden }]"
             >
+              <span class="category-token-icon" :style="{ '--category-color': category.color ?? undefined }">
+                <AppIcon name="tag" />
+              </span>
               <div class="transaction-main transaction-main-refined">
                 <div class="inline-meta-row inline-meta-row-wrap">
                   <strong>{{ category.name }}</strong>

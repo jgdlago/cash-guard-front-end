@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue"
 
+import AppIcon from "@/components/AppIcon.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
@@ -202,7 +203,15 @@ onMounted(() => {
           <button v-if="isEditing" class="ghost-button" type="button" @click="resetForm">Nova</button>
         </div>
 
-        <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
+        <form class="form-grid form-grid-dense recurring-form" @submit.prevent="submitForm">
+          <div class="field-span-2 automation-focus tone-recurring">
+            <AppIcon name="recurring" />
+            <div>
+              <span>Contrato mensal</span>
+              <strong>{{ form.description || "Nova recorrência" }}</strong>
+            </div>
+          </div>
+
           <label>
             Tipo
             <select v-model="form.type">
@@ -280,9 +289,10 @@ onMounted(() => {
             <input v-model="form.ends_on" type="date" />
           </label>
 
-          <label class="toggle-field">
-            Ativa
+          <label class="toggle-field switch-field">
+            <span>Ativa</span>
             <input v-model="form.is_active" type="checkbox" />
+            <i></i>
           </label>
 
           <button class="primary-button field-span-2" :disabled="saving">
@@ -330,21 +340,29 @@ onMounted(() => {
             v-if="!rules.length"
             title="Nenhuma recorrência encontrada."
             description="Crie uma regra para automatizar despesas e receitas previsíveis."
+            icon="recurring"
+            tone="recurring"
           />
 
           <template v-else>
             <div class="stack-list stack-list-tight recurring-card-list">
-              <article v-for="rule in rules" :key="rule.id" class="plan-card recurring-card refined-plan-card">
+              <article v-for="rule in rules" :key="rule.id" :class="['timeline-card recurring-card tone-recurring', { 'is-inactive': !rule.is_active }]">
                 <div class="plan-card-top">
                   <div>
                     <div class="inline-meta-row inline-meta-row-wrap">
                       <strong>{{ rule.description }}</strong>
-                      <span class="badge">{{ rule.type }}</span>
-                      <span class="badge">{{ rule.frequency }}</span>
+                      <span :class="['badge', `tone-${rule.type}`]">{{ rule.type }}</span>
+                      <span class="badge tone-recurring">{{ rule.frequency }}</span>
+                      <span :class="['badge', rule.is_active ? 'status-posted' : 'status-cancelled']">{{ rule.is_active ? "ativa" : "inativa" }}</span>
                     </div>
                     <p>Próxima execução em {{ rule.next_run_on }}</p>
                   </div>
                   <strong>{{ rule.amount }}</strong>
+                </div>
+                <div class="rule-timeline">
+                  <span><i></i> Início {{ rule.starts_on }}</span>
+                  <span><i></i> Próxima {{ rule.next_run_on }}</span>
+                  <span><i></i> {{ rule.ends_on ? `Encerra ${rule.ends_on}` : "Sem encerramento" }}</span>
                 </div>
                 <div class="plan-card-meta">
                   <span class="badge">{{ rule.status_on_generate }}</span>

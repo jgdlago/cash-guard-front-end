@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from "vue"
 
+import AppIcon from "@/components/AppIcon.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
@@ -41,6 +42,15 @@ const form = reactive({
 
 const isEditing = computed(() => editingTransactionId.value !== null)
 const hasActiveFilters = computed(() => Object.values(filters).some((value) => value !== "" && value !== "all"))
+const activeFilterLabels = computed(() => {
+  const labels: string[] = []
+  if (filters.type !== "all") labels.push(filters.type === "expense" ? "Despesas" : "Receitas")
+  if (filters.status !== "all") labels.push(`Status: ${filters.status}`)
+  if (filters.description) labels.push(`Busca: ${filters.description}`)
+  if (filters.from) labels.push(`De ${filters.from}`)
+  if (filters.to) labels.push(`Até ${filters.to}`)
+  return labels
+})
 
 function buildTransactionParams() {
   return {
@@ -189,14 +199,20 @@ onMounted(() => {
           <button v-if="isEditing" class="ghost-button" type="button" @click="resetForm">Novo</button>
         </div>
 
-        <form class="form-grid form-grid-dense" @submit.prevent="submitForm">
-          <label>
-            Tipo
-            <select v-model="form.type">
-              <option value="expense">Despesa</option>
-              <option value="income">Receita</option>
-            </select>
-          </label>
+        <form class="form-grid form-grid-dense transaction-form" @submit.prevent="submitForm">
+          <div class="field-span-2 amount-focus" :class="`tone-${form.type}`">
+            <span>{{ form.type === "expense" ? "Saída" : "Entrada" }}</span>
+            <strong>{{ form.amount || "0,00" }}</strong>
+          </div>
+
+          <div class="field-span-2 segmented-control type-segment">
+            <button type="button" :class="['tone-expense', { active: form.type === 'expense' }]" @click="form.type = 'expense'">
+              <AppIcon name="expense" /> Despesa
+            </button>
+            <button type="button" :class="['tone-income', { active: form.type === 'income' }]" @click="form.type = 'income'">
+              <AppIcon name="income" /> Receita
+            </button>
+          </div>
 
           <label>
             Status
@@ -259,6 +275,12 @@ onMounted(() => {
             <p class="eyebrow">Extrato</p>
             <h2>Lançamentos recentes</h2>
           </div>
+
+          <div v-if="activeFilterLabels.length" class="filter-chip-row">
+            <span v-for="label in activeFilterLabels" :key="label" class="filter-chip">
+              <AppIcon name="filter" /> {{ label }}
+            </span>
+          </div>
         </div>
 
         <div class="filter-panel filter-panel-inline filter-panel-refined">
@@ -295,6 +317,8 @@ onMounted(() => {
             v-if="!transactions.length"
             title="Nenhum lançamento encontrado."
             description="Cadastre um item novo ou ajuste os filtros para ampliar a busca."
+            icon="money"
+            tone="flow"
           />
 
           <template v-else>
@@ -302,14 +326,17 @@ onMounted(() => {
               <li
                 v-for="transaction in transactions"
                 :key="transaction.id"
-                class="row-card row-card-compact row-card-actions transaction-row refined-list-row"
+                :class="['money-row transaction-row', `tone-${transaction.type}`]"
               >
+                <span class="money-row-icon">
+                  <AppIcon :name="transaction.type === 'expense' ? 'expense' : 'income'" />
+                </span>
                 <div class="transaction-main transaction-main-refined">
                   <div class="inline-meta-row inline-meta-row-wrap">
                     <span class="transaction-type-pill" :class="`is-${transaction.type}`">
                       {{ transaction.type === "expense" ? "Despesa" : "Receita" }}
                     </span>
-                    <span class="badge">{{ transaction.status }}</span>
+                    <span :class="['badge', `status-${transaction.status}`]">{{ transaction.status }}</span>
                   </div>
                   <strong>{{ transaction.description }}</strong>
                   <p>{{ transaction.transaction_date }}</p>

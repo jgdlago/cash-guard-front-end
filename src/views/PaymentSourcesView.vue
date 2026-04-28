@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from "vue"
 
+import AppIcon from "@/components/AppIcon.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import LoadingState from "@/components/LoadingState.vue"
 import PageHeader from "@/components/PageHeader.vue"
@@ -41,6 +42,14 @@ function typeLabel(type: PaymentSourceType) {
     default:
       return "Outro"
   }
+}
+
+function typeIcon(type: PaymentSourceType): "card" | "wallet" | "sources" {
+  if (type === "credit_card" || type === "debit_card") {
+    return "card"
+  }
+
+  return type === "bank_account" || type === "wallet" || type === "cash" ? "wallet" : "sources"
 }
 
 function buildPaymentSourceParams() {
@@ -199,10 +208,15 @@ onMounted(() => {
             v-if="!paymentSources.length"
             title="Nenhuma origem encontrada."
             description="O sistema continua funcionando normalmente mesmo sem esse cadastro."
+            icon="wallet"
+            tone="flow"
           />
 
           <div v-else class="stack-list stack-list-tight source-card-list">
-            <article v-for="source in paymentSources" :key="source.id" class="source-card refined-source-card">
+            <article v-for="source in paymentSources" :key="source.id" class="source-card refined-source-card source-pocket-card tone-flow">
+              <span class="source-pocket-icon">
+                <AppIcon :name="typeIcon(source.type)" />
+              </span>
               <div class="source-card-top">
                 <div>
                   <div class="inline-meta-row inline-meta-row-wrap">
